@@ -9,6 +9,6 @@
 - ✅ 01-prerequisites: Verify SDK and toolchain readiness ([Content](tasks/01-prerequisites/task.md), [Progress](tasks/01-prerequisites/progress-details.md))
 - ✅ 03-upgrade-all-projects: Upgrade TFMs, packages, and fix breaking changes ([Content](tasks/03-upgrade-all-projects/task.md), [Progress](tasks/03-upgrade-all-projects/progress-details.md))
 - 🔄 03-upgrade-all-projects: Upgrade TFMs, packages, and fix breaking changes ([Content](tasks/03-upgrade-all-projects/task.md))
-- 🔄 03-upgrade-all-projects: Upgrade TFMs, packages, and fix breaking changes ([Content](tasks/03-upgrade-all-projects/task.md))
-- 🔲 03-upgrade-all-projects: Upgrade TFMs, packages, and fix breaking changes
+- ✅ 04-final-validation: Validate solution build and run tests ([Content](tasks/04-final-validation/task.md), [Progress](tasks/04-final-validation/progress-details.md))
+- 🔄 04-final-validation: Validate solution build and run tests ([Content](tasks/04-final-validation/task.md))
 - 🔲 04-final-validation: Validate solution build and run tests
