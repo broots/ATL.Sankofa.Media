@@ -1,0 +1,11 @@
+@page "/login"
+
+<PageTitle>Sign In - ATL Sankofa Media</PageTitle>
+
+<div class="auth-page">
+    <LoginForm ReturnUrl="@ReturnUrl" />
+</div>
+
+@code {
+    [SupplyParameterFromQuery] public string ReturnUrl { get; set; } = "/";
+}

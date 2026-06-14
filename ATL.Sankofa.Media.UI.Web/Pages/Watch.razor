@@ -1,0 +1,107 @@
+@page "/watch/{VideoId:guid}"
+@inject IVideoService VideoService
+@inject IPaywallService PaywallService
+@inject NavigationManager Navigation
+
+<PageTitle>@(Video?.Title ?? "Watch") - ATL Sankofa Media</PageTitle>
+
+<div class="watch-container">
+    @if (Video != null)
+    {
+        <div class="watch-player">
+            <VideoPlayer PlaybackUrl="@PlaybackUrl"
+                         ShowPaywall="@ShowPaywall"
+                         PaywallMessage="@PaywallMessage"
+                         PurchasePrice="@Video.PurchasePrice"
+                         OnPurchase="HandlePurchase"
+                         OnSubscribe="HandleSubscribe" />
+        </div>
+
+        <div class="watch-info">
+            <h1>@Video.Title</h1>
+            <div class="watch-stats">
+                <span>@Video.ViewCount.ToString("N0") views</span>
+                @if (Video.PublishedAt.HasValue)
+                {
+                    <span>&bull; @Video.PublishedAt.Value.ToString("MMM d, yyyy")</span>
+                }
+            </div>
+            <div class="watch-channel">
+                <strong>@Video.ChannelName</strong>
+            </div>
+            @if (!string.IsNullOrEmpty(Video.Description))
+            {
+                <div class="watch-description">
+                    <p>@Video.Description</p>
+                </div>
+            }
+        </div>
+    }
+    else if (IsLoading)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <p>Video not found.</p>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid VideoId { get; set; }
+
+    private VideoDto? Video;
+    private string? PlaybackUrl;
+    private bool ShowPaywall;
+    private string PaywallMessage = string.Empty;
+    private bool IsLoading = true;
+
+    // Placeholder user ID - in production this comes from auth
+    private Guid CurrentUserId = Guid.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Video = await VideoService.GetVideoAsync(VideoId);
+        if (Video != null)
+        {
+            await VideoService.IncrementViewCountAsync(VideoId);
+            await CheckAccess();
+        }
+        IsLoading = false;
+    }
+
+    private async Task CheckAccess()
+    {
+        if (CurrentUserId == Guid.Empty)
+        {
+            ShowPaywall = Video?.RequiredAccessTier != AccessTier.Free;
+            PaywallMessage = "Please sign in to watch this content.";
+            if (!ShowPaywall)
+            {
+                PlaybackUrl = Video?.HlsPlaybackUrl;
+            }
+            return;
+        }
+
+        var access = await PaywallService.CheckVideoAccessAsync(CurrentUserId, VideoId);
+        if (access.HasAccess)
+        {
+            PlaybackUrl = await VideoService.GetPlaybackUrlAsync(VideoId, CurrentUserId);
+        }
+        else
+        {
+            ShowPaywall = true;
+            PaywallMessage = access.DenialReason ?? "Access denied.";
+        }
+    }
+
+    private void HandlePurchase()
+    {
+        Navigation.NavigateTo($"/purchase/video/{VideoId}");
+    }
+
+    private void HandleSubscribe()
+    {
+        Navigation.NavigateTo("/subscriptions");
+    }
+}

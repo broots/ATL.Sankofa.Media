@@ -1,0 +1,73 @@
+@inject IVideoService VideoService
+
+<div class="video-card" @onclick="OnClick">
+    <div class="video-thumbnail">
+        @if (!string.IsNullOrEmpty(Video?.ThumbnailUrl))
+        {
+            <img src="@Video.ThumbnailUrl" alt="@Video.Title" />
+        }
+        else
+        {
+            <div class="thumbnail-placeholder"></div>
+        }
+        @if (Video?.Duration.HasValue == true)
+        {
+            <span class="video-duration">@FormatDuration(Video.Duration.Value)</span>
+        }
+        @if (Video?.RequiredAccessTier != AccessTier.Free)
+        {
+            <span class="access-badge">@Video?.RequiredAccessTier.ToString()</span>
+        }
+    </div>
+    <div class="video-info">
+        <h3 class="video-title">@Video?.Title</h3>
+        <p class="video-channel">@Video?.ChannelName</p>
+        <p class="video-stats">
+            @FormatViewCount(Video?.ViewCount ?? 0) views
+            @if (Video?.PublishedAt.HasValue == true)
+            {
+                <span> &bull; @FormatTimeAgo(Video.PublishedAt.Value)</span>
+            }
+        </p>
+    </div>
+</div>
+
+@code {
+    [Parameter] public VideoDto? Video { get; set; }
+    [Parameter] public EventCallback<VideoDto> OnVideoSelected { get; set; }
+
+    private async Task OnClick()
+    {
+        if (Video != null)
+        {
+            await OnVideoSelected.InvokeAsync(Video);
+        }
+    }
+
+    private static string FormatDuration(TimeSpan duration)
+    {
+        return duration.TotalHours >= 1
+            ? duration.ToString(@"h\:mm\:ss")
+            : duration.ToString(@"m\:ss");
+    }
+
+    private static string FormatViewCount(long count) => count switch
+    {
+        >= 1_000_000 => $"{count / 1_000_000.0:F1}M",
+        >= 1_000 => $"{count / 1_000.0:F1}K",
+        _ => count.ToString()
+    };
+
+    private static string FormatTimeAgo(DateTime dateTime)
+    {
+        var timeSpan = DateTime.UtcNow - dateTime;
+        return timeSpan.TotalDays switch
+        {
+            >= 365 => $"{(int)(timeSpan.TotalDays / 365)} year(s) ago",
+            >= 30 => $"{(int)(timeSpan.TotalDays / 30)} month(s) ago",
+            >= 7 => $"{(int)(timeSpan.TotalDays / 7)} week(s) ago",
+            >= 1 => $"{(int)timeSpan.TotalDays} day(s) ago",
+            _ => $"{(int)timeSpan.TotalHours} hour(s) ago"
+        };
+    }
+}

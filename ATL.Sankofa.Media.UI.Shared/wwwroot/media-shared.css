@@ -1,0 +1,321 @@
+:root {
+    --primary-color: #1a73e8;
+    --primary-dark: #1557b0;
+    --secondary-color: #ff4444;
+    --bg-color: #0f0f0f;
+    --surface-color: #1a1a1a;
+    --card-color: #212121;
+    --text-primary: #ffffff;
+    --text-secondary: #aaaaaa;
+    --border-color: #333333;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+}
+
+.video-card {
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.video-card:hover {
+    transform: scale(1.02);
+}
+
+.video-thumbnail {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--card-color);
+}
+
+.video-thumbnail img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.thumbnail-placeholder {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, var(--card-color), var(--surface-color));
+}
+
+.video-duration {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.access-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--warning-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.video-info {
+    padding: 12px 4px;
+}
+
+.video-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 4px 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.video-channel,
+.video-stats {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 2px 0;
+}
+
+/* Live Stream Card */
+.live-stream-card {
+    cursor: pointer;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s;
+}
+
+.live-stream-card:hover {
+    transform: scale(1.02);
+}
+
+.live-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--secondary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+.scheduled-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--primary-color);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.viewer-count {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+/* Video Player */
+.video-player-container {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: black;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.video-player {
+    width: 100%;
+    height: 100%;
+}
+
+.paywall-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.85);
+}
+
+.paywall-content {
+    text-align: center;
+    color: white;
+    padding: 32px;
+}
+
+.paywall-content h3 {
+    margin-bottom: 16px;
+}
+
+.btn-purchase,
+.btn-subscribe {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    margin: 8px;
+    transition: background 0.2s;
+}
+
+.btn-purchase {
+    background: var(--success-color);
+    color: white;
+}
+
+.btn-subscribe {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-purchase:hover { background: #388e3c; }
+.btn-subscribe:hover { background: var(--primary-dark); }
+
+/* Subscription Plans */
+.subscription-plans {
+    padding: 24px;
+}
+
+.plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+    margin: 24px 0;
+}
+
+.plan-card {
+    background: var(--card-color);
+    border: 2px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+    text-align: center;
+    transition: border-color 0.2s;
+}
+
+.plan-card.selected {
+    border-color: var(--primary-color);
+}
+
+.plan-pricing .price {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.plan-pricing .period {
+    font-size: 14px;
+    color: var(--text-secondary);
+}
+
+.plan-features {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0;
+    text-align: left;
+}
+
+.plan-features li {
+    padding: 8px 0;
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.plan-features li::before {
+    content: "✓ ";
+    color: var(--success-color);
+}
+
+.btn-select-plan {
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 24px;
+    background: var(--primary-color);
+    color: white;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-select-plan:hover:not(:disabled) { background: var(--primary-dark); }
+.btn-select-plan:disabled { background: var(--border-color); cursor: not-allowed; }
+
+/* Channel Header */
+.channel-banner img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+
+.channel-profile {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+}
+
+.channel-avatar img,
+.avatar-placeholder {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.avatar-placeholder {
+    background: var(--primary-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+}
+
+.channel-details h1 {
+    margin: 0;
+    font-size: 24px;
+    color: var(--text-primary);
+}
+
+.channel-handle {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.channel-stats {
+    color: var(--text-secondary);
+    font-size: 13px;
+}

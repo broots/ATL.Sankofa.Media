@@ -1,0 +1,62 @@
+@page "/"
+@inject IVideoService VideoService
+@inject ILiveStreamService LiveStreamService
+
+<PageTitle>ATL Sankofa Media - Home</PageTitle>
+
+<div class="home-container">
+    <section class="live-section">
+        <h2>🔴 Live Now</h2>
+        <div class="stream-grid">
+            @if (ActiveStreams?.LiveStreams?.Count > 0)
+            {
+                @foreach (var stream in ActiveStreams.LiveStreams)
+                {
+                    <LiveStreamCard Stream="stream" OnStreamSelected="NavigateToStream" />
+                }
+            }
+            else
+            {
+                <p class="empty-state">No live streams at the moment</p>
+            }
+        </div>
+    </section>
+
+    <section class="trending-section">
+        <h2>Trending</h2>
+        <div class="video-grid">
+            @if (TrendingVideos?.Videos?.Count > 0)
+            {
+                @foreach (var video in TrendingVideos.Videos)
+                {
+                    <VideoCard Video="video" OnVideoSelected="NavigateToVideo" />
+                }
+            }
+            else
+            {
+                <p class="empty-state">Loading videos...</p>
+            }
+        </div>
+    </section>
+</div>
+
+@code {
+    private VideoListResponse? TrendingVideos;
+    private LiveStreamListResponse? ActiveStreams;
+
+    protected override async Task OnInitializedAsync()
+    {
+        TrendingVideos = await VideoService.GetPublicFeedAsync(page: 1, pageSize: 12);
+        ActiveStreams = await LiveStreamService.GetActiveLiveStreamsAsync(page: 1, pageSize: 4);
+    }
+
+    private void NavigateToVideo(VideoDto video)
+    {
+        // Navigate to watch page
+    }
+
+    private void NavigateToStream(LiveStreamDto stream)
+    {
+        // Navigate to live stream page
+    }
+}

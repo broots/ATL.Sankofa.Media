@@ -1,0 +1,65 @@
+@inject ISubscriptionService SubscriptionService
+
+<div class="subscription-plans">
+    <h2>Choose Your Plan</h2>
+    <div class="plans-grid">
+        @if (Plans != null)
+        {
+            @foreach (var plan in Plans)
+            {
+                <div class="plan-card @(plan.Tier == SelectedTier ? "selected" : "")">
+                    <h3>@plan.TierName</h3>
+                    <div class="plan-pricing">
+                        @if (ShowYearly)
+                        {
+                            <span class="price">@plan.YearlyPrice.ToString("C")</span>
+                            <span class="period">/year</span>
+                        }
+                        else
+                        {
+                            <span class="price">@plan.MonthlyPrice.ToString("C")</span>
+                            <span class="period">/month</span>
+                        }
+                    </div>
+                    <ul class="plan-features">
+                        @foreach (var feature in plan.Features)
+                        {
+                            <li>@feature</li>
+                        }
+                    </ul>
+                    <button class="btn-select-plan"
+                            disabled="@(plan.Tier == CurrentTier)"
+                            @onclick="() => SelectPlan(plan.Tier)">
+                        @(plan.Tier == CurrentTier ? "Current Plan" : "Select Plan")
+                    </button>
+                </div>
+            }
+        }
+    </div>
+    <div class="billing-toggle">
+        <label>
+            <input type="checkbox" @bind="ShowYearly" />
+            Show yearly pricing (save up to 17%)
+        </label>
+    </div>
+</div>
+
+@code {
+    [Parameter] public SubscriptionTier CurrentTier { get; set; } = SubscriptionTier.Free;
+    [Parameter] public SubscriptionTier SelectedTier { get; set; }
+    [Parameter] public EventCallback<SubscriptionTier> OnPlanSelected { get; set; }
+
+    private List<SubscriptionPricingDto>? Plans;
+    private bool ShowYearly;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Plans = await SubscriptionService.GetPricingAsync();
+    }
+
+    private async Task SelectPlan(SubscriptionTier tier)
+    {
+        SelectedTier = tier;
+        await OnPlanSelected.InvokeAsync(tier);
+    }
+}

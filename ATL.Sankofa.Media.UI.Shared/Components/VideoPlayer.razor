@@ -1,0 +1,44 @@
+<div class="video-player-container">
+    @if (!string.IsNullOrEmpty(PlaybackUrl))
+    {
+        <video id="video-player" controls autoplay class="video-player">
+            <source src="@PlaybackUrl" type="application/x-mpegURL" />
+            Your browser does not support the video element.
+        </video>
+    }
+    else if (ShowPaywall)
+    {
+        <div class="paywall-overlay">
+            <div class="paywall-content">
+                <h3>@PaywallMessage</h3>
+                @if (PurchasePrice.HasValue)
+                {
+                    <button class="btn-purchase" @onclick="OnPurchaseClicked">
+                        Purchase for @PurchasePrice.Value.ToString("C")
+                    </button>
+                }
+                <button class="btn-subscribe" @onclick="OnSubscribeClicked">
+                    Upgrade Subscription
+                </button>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="video-loading">
+            <p>Loading video...</p>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public string? PlaybackUrl { get; set; }
+    [Parameter] public bool ShowPaywall { get; set; }
+    [Parameter] public string PaywallMessage { get; set; } = "This content requires a subscription.";
+    [Parameter] public decimal? PurchasePrice { get; set; }
+    [Parameter] public EventCallback OnPurchase { get; set; }
+    [Parameter] public EventCallback OnSubscribe { get; set; }
+
+    private async Task OnPurchaseClicked() => await OnPurchase.InvokeAsync();
+    private async Task OnSubscribeClicked() => await OnSubscribe.InvokeAsync();
+}

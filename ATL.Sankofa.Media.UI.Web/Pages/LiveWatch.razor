@@ -1,0 +1,105 @@
+@page "/live/{LiveStreamId:guid}"
+@inject ILiveStreamService LiveStreamService
+@inject IPaywallService PaywallService
+@inject NavigationManager Navigation
+
+<PageTitle>@(Stream?.Title ?? "Live") - ATL Sankofa Media</PageTitle>
+
+<div class="live-watch-container">
+    @if (Stream != null)
+    {
+        <div class="live-player">
+            <VideoPlayer PlaybackUrl="@PlaybackUrl"
+                         ShowPaywall="@ShowPaywall"
+                         PaywallMessage="@PaywallMessage"
+                         PurchasePrice="@Stream.TicketPrice"
+                         OnPurchase="HandlePurchaseTicket"
+                         OnSubscribe="HandleSubscribe" />
+        </div>
+
+        <div class="live-info">
+            <div class="live-header">
+                <h1>@Stream.Title</h1>
+                @if (Stream.Status == LiveStreamStatus.Live)
+                {
+                    <span class="live-indicator">🔴 LIVE</span>
+                    <span class="viewer-count">@Stream.ConcurrentViewers watching now</span>
+                }
+            </div>
+            <div class="live-channel">
+                <strong>@Stream.ChannelName</strong>
+            </div>
+            @if (!string.IsNullOrEmpty(Stream.Description))
+            {
+                <div class="live-description">
+                    <p>@Stream.Description</p>
+                </div>
+            }
+        </div>
+    }
+    else if (IsLoading)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <p>Live stream not found.</p>
+    }
+</div>
+
+@code {
+    [Parameter] public Guid LiveStreamId { get; set; }
+
+    private LiveStreamDto? Stream;
+    private string? PlaybackUrl;
+    private bool ShowPaywall;
+    private string PaywallMessage = string.Empty;
+    private bool IsLoading = true;
+
+    private Guid CurrentUserId = Guid.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Stream = await LiveStreamService.GetLiveStreamAsync(LiveStreamId);
+        if (Stream != null)
+        {
+            await CheckAccess();
+        }
+        IsLoading = false;
+    }
+
+    private async Task CheckAccess()
+    {
+        if (CurrentUserId == Guid.Empty)
+        {
+            ShowPaywall = Stream?.RequiredAccessTier != AccessTier.Free;
+            PaywallMessage = "Please sign in to watch this live stream.";
+            if (!ShowPaywall)
+            {
+                PlaybackUrl = Stream?.HlsPlaybackUrl;
+            }
+            return;
+        }
+
+        var access = await PaywallService.CheckLiveStreamAccessAsync(CurrentUserId, LiveStreamId);
+        if (access.HasAccess)
+        {
+            PlaybackUrl = await LiveStreamService.GetPlaybackUrlAsync(LiveStreamId, CurrentUserId);
+        }
+        else
+        {
+            ShowPaywall = true;
+            PaywallMessage = access.DenialReason ?? "Access denied.";
+        }
+    }
+
+    private void HandlePurchaseTicket()
+    {
+        Navigation.NavigateTo($"/purchase/livestream/{LiveStreamId}");
+    }
+
+    private void HandleSubscribe()
+    {
+        Navigation.NavigateTo("/subscriptions");
+    }
+}
