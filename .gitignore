@@ -3,3 +3,15 @@
 ################################################################################
 
 /.vs
+/ATL.Sankofa.Media.API/bin/Debug/net8.0
+/ATL.Sankofa.Media.API/obj
+/ATL.Sankofa.Media.Business/bin/Debug/net8.0
+/ATL.Sankofa.Media.Business/obj
+/ATL.Sankofa.Media.Data/bin/Debug/net8.0
+/ATL.Sankofa.Media.Data/obj
+/ATL.Sankofa.Media.UI.Maui/bin/Debug
+/ATL.Sankofa.Media.UI.Maui/obj
+/ATL.Sankofa.Media.UI.Shared/bin/Debug/net8.0
+/ATL.Sankofa.Media.UI.Shared/obj
+/ATL.Sankofa.Media.UI.Web/bin/Debug/net8.0
+/ATL.Sankofa.Media.UI.Web/obj

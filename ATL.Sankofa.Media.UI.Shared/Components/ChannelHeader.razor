@@ -1,0 +1,59 @@
+<div class="channel-header">
+    @if (Channel != null)
+    {
+        @if (!string.IsNullOrEmpty(Channel.BannerUrl))
+        {
+            <div class="channel-banner">
+                <img src="@Channel.BannerUrl" alt="@Channel.Name banner" />
+            </div>
+        }
+        <div class="channel-profile">
+            <div class="channel-avatar">
+                @if (!string.IsNullOrEmpty(Channel.AvatarUrl))
+                {
+                    <img src="@Channel.AvatarUrl" alt="@Channel.Name" />
+                }
+                else
+                {
+                    <div class="avatar-placeholder">@Channel.Name[0]</div>
+                }
+            </div>
+            <div class="channel-details">
+                <h1>@Channel.Name @(Channel.IsVerified ? "✓" : "")</h1>
+                <p class="channel-handle">@@@Channel.Handle</p>
+                <p class="channel-stats">
+                    @FormatCount(Channel.SubscriberCount) subscribers &bull;
+                    @Channel.VideoCount videos
+                </p>
+                @if (!string.IsNullOrEmpty(Channel.Description))
+                {
+                    <p class="channel-description">@Channel.Description</p>
+                }
+            </div>
+            <div class="channel-actions">
+                @if (ShowSubscribeButton)
+                {
+                    <button class="btn-subscribe" @onclick="OnSubscribeClicked">
+                        @(IsSubscribed ? "Subscribed" : "Subscribe")
+                    </button>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public ChannelDto? Channel { get; set; }
+    [Parameter] public bool ShowSubscribeButton { get; set; } = true;
+    [Parameter] public bool IsSubscribed { get; set; }
+    [Parameter] public EventCallback OnSubscribe { get; set; }
+
+    private async Task OnSubscribeClicked() => await OnSubscribe.InvokeAsync();
+
+    private static string FormatCount(int count) => count switch
+    {
+        >= 1_000_000 => $"{count / 1_000_000.0:F1}M",
+        >= 1_000 => $"{count / 1_000.0:F1}K",
+        _ => count.ToString()
+    };
+}

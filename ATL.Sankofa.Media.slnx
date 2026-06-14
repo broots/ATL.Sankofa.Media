@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="ATL.Sankofa.Media.API/ATL.Sankofa.Media.API.csproj" />
+  <Project Path="ATL.Sankofa.Media.Business/ATL.Sankofa.Media.Business.csproj" />
+  <Project Path="ATL.Sankofa.Media.Data/ATL.Sankofa.Media.Data.csproj" />
+  <Project Path="ATL.Sankofa.Media.UI.Maui/ATL.Sankofa.Media.UI.Maui.csproj" />
+  <Project Path="ATL.Sankofa.Media.UI.Shared/ATL.Sankofa.Media.UI.Shared.csproj" />
+  <Project Path="ATL.Sankofa.Media.UI.Web/ATL.Sankofa.Media.UI.Web.csproj" />
+</Solution>

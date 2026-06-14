@@ -1,0 +1,111 @@
+@using ATL.Sankofa.Media.Business.Models
+@using ATL.Sankofa.Media.UI.Shared.Auth
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject TokenAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
+
+<div class="register-form">
+    <h2>Create Account</h2>
+
+    @if (Errors.Any())
+    {
+        <div class="error-messages">
+            @foreach (var error in Errors)
+            {
+                <p class="error">@error</p>
+            }
+        </div>
+    }
+
+    <div class="form-group">
+        <label>Display Name</label>
+        <input type="text" @bind="RegisterModel.DisplayName" placeholder="Your display name" />
+    </div>
+
+    <div class="form-group">
+        <label>Username</label>
+        <input type="text" @bind="RegisterModel.UserName" placeholder="username" />
+    </div>
+
+    <div class="form-group">
+        <label>Email</label>
+        <input type="email" @bind="RegisterModel.Email" placeholder="your@email.com" />
+    </div>
+
+    <div class="form-group">
+        <label>Password</label>
+        <input type="password" @bind="RegisterModel.Password" placeholder="Min 8 characters" />
+    </div>
+
+    <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" @bind="RegisterModel.ConfirmPassword" placeholder="Confirm password" />
+    </div>
+
+    <button class="btn-primary" @onclick="HandleRegister" disabled="@IsLoading">
+        @(IsLoading ? "Creating account..." : "Sign Up")
+    </button>
+
+    <div class="divider"><span>or continue with</span></div>
+
+    <div class="external-providers">
+        <button class="btn-external btn-google" @onclick='() => HandleExternalLogin("Google")'>
+            Google
+        </button>
+        <button class="btn-external btn-facebook" @onclick='() => HandleExternalLogin("Facebook")'>
+            Facebook
+        </button>
+        <button class="btn-external btn-twitter" @onclick='() => HandleExternalLogin("Twitter")'>
+            Twitter
+        </button>
+    </div>
+
+    <p class="form-footer">
+        Already have an account? <a href="/login">Sign In</a>
+    </p>
+</div>
+
+@code {
+    [Parameter] public EventCallback<AuthResponse> OnRegisterSuccess { get; set; }
+
+    private RegisterRequest RegisterModel = new();
+    private List<string> Errors = new();
+    private bool IsLoading;
+
+    private async Task HandleRegister()
+    {
+        Errors.Clear();
+        IsLoading = true;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/register", RegisterModel);
+            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+
+            if (result?.Succeeded == true)
+            {
+                await AuthStateProvider.LoginAsync(result);
+                await OnRegisterSuccess.InvokeAsync(result);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                Errors = result?.Errors ?? new List<string> { "Registration failed." };
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Add($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void HandleExternalLogin(string provider)
+    {
+        Navigation.NavigateTo($"api/auth/external-login/{provider}?returnUrl=/", forceLoad: true);
+    }
+}

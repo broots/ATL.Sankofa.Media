@@ -1,0 +1,84 @@
+@page "/channel/{Handle}"
+@inject IChannelService ChannelService
+@inject IVideoService VideoService
+
+<PageTitle>@(ChannelInfo?.Name ?? "Channel") - ATL Sankofa Media</PageTitle>
+
+<div class="channel-page">
+    @if (ChannelInfo != null)
+    {
+        <ChannelHeader Channel="ChannelInfo"
+                       IsSubscribed="IsSubscribed"
+                       OnSubscribe="HandleSubscribe" />
+
+        <div class="channel-content">
+            <div class="channel-tabs">
+                <button class="@(ActiveTab == "videos" ? "active" : "")" @onclick="@(() => ActiveTab = "videos")">Videos</button>
+                <button class="@(ActiveTab == "live" ? "active" : "")" @onclick="@(() => ActiveTab = "live")">Live</button>
+                <button class="@(ActiveTab == "about" ? "active" : "")" @onclick="@(() => ActiveTab = "about")">About</button>
+            </div>
+
+            @if (ActiveTab == "videos")
+            {
+                <div class="video-grid">
+                    @if (Videos?.Videos?.Count > 0)
+                    {
+                        @foreach (var video in Videos.Videos)
+                        {
+                            <VideoCard Video="video" OnVideoSelected="NavigateToVideo" />
+                        }
+                    }
+                    else
+                    {
+                        <p class="empty-state">No videos yet</p>
+                    }
+                </div>
+            }
+            else if (ActiveTab == "about")
+            {
+                <div class="channel-about">
+                    <p>@ChannelInfo.Description</p>
+                    <p><strong>Joined:</strong> @ChannelInfo.CreatedAt.ToString("MMMM yyyy")</p>
+                </div>
+            }
+        </div>
+    }
+    else if (IsLoading)
+    {
+        <p>Loading...</p>
+    }
+    else
+    {
+        <p>Channel not found.</p>
+    }
+</div>
+
+@code {
+    [Parameter] public string Handle { get; set; } = string.Empty;
+
+    private ChannelDto? ChannelInfo;
+    private VideoListResponse? Videos;
+    private bool IsSubscribed;
+    private bool IsLoading = true;
+    private string ActiveTab = "videos";
+
+    protected override async Task OnInitializedAsync()
+    {
+        ChannelInfo = await ChannelService.GetChannelByHandleAsync(Handle);
+        if (ChannelInfo != null)
+        {
+            Videos = await VideoService.GetVideosAsync(ChannelInfo.Id);
+        }
+        IsLoading = false;
+    }
+
+    private void NavigateToVideo(VideoDto video)
+    {
+        // Navigate to watch page
+    }
+
+    private void HandleSubscribe()
+    {
+        // Handle subscription
+    }
+}

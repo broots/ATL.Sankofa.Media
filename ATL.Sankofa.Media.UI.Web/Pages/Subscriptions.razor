@@ -1,0 +1,73 @@
+@page "/subscriptions"
+@inject ISubscriptionService SubscriptionService
+
+<PageTitle>Subscriptions - ATL Sankofa Media</PageTitle>
+
+<div class="subscriptions-page">
+    <h1>Manage Your Subscription</h1>
+
+    @if (CurrentSubscription != null)
+    {
+        <div class="current-plan">
+            <h3>Current Plan: @CurrentSubscription.Tier</h3>
+            <p>Status: @CurrentSubscription.Status</p>
+            <p>Next billing: @CurrentSubscription.NextBillingDate?.ToString("MMM d, yyyy")</p>
+            <p>Amount: @CurrentSubscription.Price.ToString("C") / @CurrentSubscription.BillingCycle</p>
+        </div>
+    }
+
+    <SubscriptionPlans CurrentTier="CurrentTier" OnPlanSelected="HandlePlanSelected" />
+
+    @if (ShowConfirmation)
+    {
+        <div class="confirmation-modal">
+            <div class="modal-content">
+                <h3>Confirm Subscription Change</h3>
+                <p>You are about to subscribe to the @SelectedTier plan.</p>
+                <button class="btn-confirm" @onclick="ConfirmSubscription">Confirm</button>
+                <button class="btn-cancel" @onclick="@(() => ShowConfirmation = false)">Cancel</button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private SubscriptionDto? CurrentSubscription;
+    private SubscriptionTier CurrentTier = SubscriptionTier.Free;
+    private SubscriptionTier SelectedTier;
+    private bool ShowConfirmation;
+
+    // Placeholder - in production comes from auth
+    private Guid CurrentUserId = Guid.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (CurrentUserId != Guid.Empty)
+        {
+            CurrentSubscription = await SubscriptionService.GetActiveSubscriptionAsync(CurrentUserId);
+            CurrentTier = CurrentSubscription?.Tier ?? SubscriptionTier.Free;
+        }
+    }
+
+    private void HandlePlanSelected(SubscriptionTier tier)
+    {
+        SelectedTier = tier;
+        ShowConfirmation = true;
+    }
+
+    private async Task ConfirmSubscription()
+    {
+        if (CurrentUserId == Guid.Empty) return;
+
+        await SubscriptionService.CreateSubscriptionAsync(new CreateSubscriptionRequest
+        {
+            UserId = CurrentUserId,
+            Tier = SelectedTier,
+            BillingCycle = BillingCycle.Monthly
+        });
+
+        CurrentTier = SelectedTier;
+        ShowConfirmation = false;
+        CurrentSubscription = await SubscriptionService.GetActiveSubscriptionAsync(CurrentUserId);
+    }
+}

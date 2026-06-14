@@ -1,0 +1,48 @@
+<div class="live-stream-card @(IsLive ? "live" : "")" @onclick="OnClick">
+    <div class="stream-thumbnail">
+        @if (!string.IsNullOrEmpty(Stream?.ThumbnailUrl))
+        {
+            <img src="@Stream.ThumbnailUrl" alt="@Stream.Title" />
+        }
+        else
+        {
+            <div class="thumbnail-placeholder live-placeholder"></div>
+        }
+        @if (IsLive)
+        {
+            <span class="live-badge">LIVE</span>
+            <span class="viewer-count">@Stream?.ConcurrentViewers watching</span>
+        }
+        else if (Stream?.Status == LiveStreamStatus.Scheduled)
+        {
+            <span class="scheduled-badge">SCHEDULED</span>
+        }
+        @if (Stream?.RequiredAccessTier != AccessTier.Free)
+        {
+            <span class="access-badge">@Stream?.RequiredAccessTier.ToString()</span>
+        }
+    </div>
+    <div class="stream-info">
+        <h3 class="stream-title">@Stream?.Title</h3>
+        <p class="stream-channel">@Stream?.ChannelName</p>
+        @if (Stream?.ScheduledStartTime.HasValue == true && !IsLive)
+        {
+            <p class="stream-schedule">Starts: @Stream.ScheduledStartTime.Value.ToLocalTime().ToString("g")</p>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public LiveStreamDto? Stream { get; set; }
+    [Parameter] public EventCallback<LiveStreamDto> OnStreamSelected { get; set; }
+
+    private bool IsLive => Stream?.Status == LiveStreamStatus.Live;
+
+    private async Task OnClick()
+    {
+        if (Stream != null)
+        {
+            await OnStreamSelected.InvokeAsync(Stream);
+        }
+    }
+}
