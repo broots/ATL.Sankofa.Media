@@ -4,84 +4,121 @@
 
 <PageTitle>Upload Video - ATL Sankofa Media</PageTitle>
 
-<div class="upload-page">
-    <h1>Upload Video</h1>
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6 mb-8">
+    <MudText Typo="Typo.h4" Class="mb-1" Style="font-weight: 700;">Upload Video</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Share your content with the world</MudText>
 
-    <div class="upload-form">
-        <div class="form-group">
-            <label>Title</label>
-            <input type="text" @bind="UploadRequest.Title" placeholder="Enter video title" />
-        </div>
+    <MudPaper Class="upload-form-card pa-6" Elevation="0">
+        <MudGrid Spacing="3">
+            <MudItem xs="12">
+                <MudTextField T="string" @bind-Value="UploadRequest.Title" Label="Title" Variant="Variant.Outlined"
+                              Placeholder="Enter a compelling title" Required="true" RequiredError="Title is required"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" />
+            </MudItem>
 
-        <div class="form-group">
-            <label>Description</label>
-            <textarea @bind="UploadRequest.Description" placeholder="Describe your video" rows="4"></textarea>
-        </div>
+            <MudItem xs="12">
+                <MudTextField T="string" @bind-Value="UploadRequest.Description" Label="Description" Variant="Variant.Outlined"
+                              Placeholder="Tell viewers about your video" Lines="4"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" />
+            </MudItem>
 
-        <div class="form-group">
-            <label>Category</label>
-            <select @bind="UploadRequest.Category">
-                <option value="">Select category</option>
-                <option value="Entertainment">Entertainment</option>
-                <option value="Education">Education</option>
-                <option value="Music">Music</option>
-                <option value="Sports">Sports</option>
-                <option value="News">News</option>
-                <option value="Technology">Technology</option>
-                <option value="Gaming">Gaming</option>
-            </select>
-        </div>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="string" @bind-Value="UploadRequest.Category" Label="Category" Variant="Variant.Outlined"
+                           Placeholder="Select category" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Category">
+                    <MudSelectItem Value="@("Entertainment")">Entertainment</MudSelectItem>
+                    <MudSelectItem Value="@("Education")">Education</MudSelectItem>
+                    <MudSelectItem Value="@("Music")">Music</MudSelectItem>
+                    <MudSelectItem Value="@("Sports")">Sports</MudSelectItem>
+                    <MudSelectItem Value="@("News")">News</MudSelectItem>
+                    <MudSelectItem Value="@("Technology")">Technology</MudSelectItem>
+                    <MudSelectItem Value="@("Gaming")">Gaming</MudSelectItem>
+                </MudSelect>
+            </MudItem>
 
-        <div class="form-group">
-            <label>Tags (comma-separated)</label>
-            <input type="text" @bind="UploadRequest.Tags" placeholder="tag1, tag2, tag3" />
-        </div>
+            <MudItem xs="12" sm="6">
+                <MudTextField T="string" @bind-Value="UploadRequest.Tags" Label="Tags" Variant="Variant.Outlined"
+                              Placeholder="tag1, tag2, tag3" HelperText="Comma-separated"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Tag" />
+            </MudItem>
 
-        <div class="form-group">
-            <label>Visibility</label>
-            <select @bind="UploadRequest.Visibility">
-                <option value="@VideoVisibility.Private">Private</option>
-                <option value="@VideoVisibility.Unlisted">Unlisted</option>
-                <option value="@VideoVisibility.Public">Public</option>
-            </select>
-        </div>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="VideoVisibility" @bind-Value="UploadRequest.Visibility" Label="Visibility" Variant="Variant.Outlined"
+                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Visibility">
+                    <MudSelectItem Value="VideoVisibility.Private">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" /> Private
+                        </div>
+                    </MudSelectItem>
+                    <MudSelectItem Value="VideoVisibility.Unlisted">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.LinkOff" Size="Size.Small" /> Unlisted
+                        </div>
+                    </MudSelectItem>
+                    <MudSelectItem Value="VideoVisibility.Public">
+                        <div class="d-flex align-center gap-2">
+                            <MudIcon Icon="@Icons.Material.Filled.Public" Size="Size.Small" /> Public
+                        </div>
+                    </MudSelectItem>
+                </MudSelect>
+            </MudItem>
 
-        <div class="form-group">
-            <label>Access Tier</label>
-            <select @bind="UploadRequest.RequiredAccessTier">
-                <option value="@AccessTier.Free">Free</option>
-                <option value="@AccessTier.Basic">Basic Subscribers</option>
-                <option value="@AccessTier.Premium">Premium Subscribers</option>
-                <option value="@AccessTier.PayPerView">Pay-Per-View</option>
-            </select>
-        </div>
+            <MudItem xs="12" sm="6">
+                <MudSelect T="AccessTier" @bind-Value="UploadRequest.RequiredAccessTier" Label="Access Tier" Variant="Variant.Outlined"
+                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Shield">
+                    <MudSelectItem Value="AccessTier.Free">Free</MudSelectItem>
+                    <MudSelectItem Value="AccessTier.Basic">Basic Subscribers</MudSelectItem>
+                    <MudSelectItem Value="AccessTier.Premium">Premium Subscribers</MudSelectItem>
+                    <MudSelectItem Value="AccessTier.PayPerView">Pay-Per-View</MudSelectItem>
+                </MudSelect>
+            </MudItem>
 
-        @if (UploadRequest.RequiredAccessTier == AccessTier.PayPerView)
-        {
-            <div class="form-group">
-                <label>Purchase Price ($)</label>
-                <input type="number" step="0.01" @bind="UploadRequest.PurchasePrice" />
-            </div>
-        }
+            @if (UploadRequest.RequiredAccessTier == AccessTier.PayPerView)
+            {
+                <MudItem xs="12" sm="6">
+                    <MudNumericField T="decimal?" @bind-Value="UploadRequest.PurchasePrice" Label="Purchase Price"
+                                     Variant="Variant.Outlined" Min="0.01m" Step="0.50m" Format="C2"
+                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                </MudItem>
+            }
 
-        <button class="btn-upload" @onclick="InitiateUpload" disabled="@IsUploading">
-            @(IsUploading ? "Preparing upload..." : "Upload Video")
-        </button>
+            <MudItem xs="12" Class="mt-2">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true"
+                           StartIcon="@Icons.Material.Filled.CloudUpload" OnClick="InitiateUpload"
+                           Disabled="IsUploading" Class="upload-btn">
+                    @if (IsUploading)
+                    {
+                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                        <span>Preparing upload...</span>
+                    }
+                    else
+                    {
+                        <span>Upload Video</span>
+                    }
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
 
-        @if (!string.IsNullOrEmpty(UploadUrl))
-        {
-            <div class="upload-ready">
-                <p>✓ Upload URL ready. Use this URL to upload your video file:</p>
+    @if (!string.IsNullOrEmpty(UploadUrl))
+    {
+        <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Class="mt-4"
+                  Icon="@Icons.Material.Filled.CheckCircle">
+            <MudText Typo="Typo.subtitle2">Upload URL ready!</MudText>
+            <MudText Typo="Typo.body2" Class="mt-1">Use this URL to upload your video file:</MudText>
+            <MudPaper Class="pa-2 mt-2" Style="background: rgba(0,0,0,0.2); border-radius: 8px; word-break: break-all;">
                 <code>@UploadUrl</code>
-            </div>
-        }
+            </MudPaper>
+        </MudAlert>
+    }
 
-        @if (!string.IsNullOrEmpty(ErrorMessage))
-        {
-            <div class="error-message">@ErrorMessage</div>
-        }
-    </div>
-</div>
+    @if (!string.IsNullOrEmpty(ErrorMessage))
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mt-4" ShowCloseIcon="true"
+                  CloseIconClicked="() => ErrorMessage = null">
+            @ErrorMessage
+        </MudAlert>
+    }
+</MudContainer>
 
 @code {
     private VideoUploadRequest UploadRequest = new();

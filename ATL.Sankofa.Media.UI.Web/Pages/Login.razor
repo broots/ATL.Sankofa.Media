@@ -1,11 +1,115 @@
 @page "/login"
+@using ATL.Sankofa.Media.Business.Models
+@using ATL.Sankofa.Media.UI.Shared.Auth
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject TokenAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>Sign In - ATL Sankofa Media</PageTitle>
 
-<div class="auth-page">
-    <LoginForm ReturnUrl="@ReturnUrl" />
+<div class="auth-page-wrapper">
+    <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="auth-container">
+        <MudPaper Class="auth-card pa-6" Elevation="0">
+            <div class="text-center mb-4">
+                <MudText Typo="Typo.h4" Style="font-weight: 800;">
+                    <span style="background: linear-gradient(135deg, #7c4dff, #ff6d00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        Welcome Back
+                    </span>
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">Sign in to continue to ATL Sankofa Media</MudText>
+            </div>
+
+            @if (Errors.Count > 0)
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mb-4" Dense="true">
+                    @foreach (var error in Errors)
+                    {
+                        <MudText Typo="Typo.body2">@error</MudText>
+                    }
+                </MudAlert>
+            }
+
+            <MudTextField T="string" @bind-Value="LoginModel.Email" Label="Email" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Placeholder="you@email.com" Class="mb-3"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+
+            <MudTextField T="string" @bind-Value="LoginModel.Password" Label="Password" Variant="Variant.Outlined"
+                          InputType="@(_showPassword ? InputType.Text : InputType.Password)" Class="mb-4"
+                          Adornment="Adornment.End" AdornmentIcon="@(_showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                          OnAdornmentClick="() => _showPassword = !_showPassword" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                       OnClick="HandleLogin" Disabled="IsLoading" Class="auth-submit-btn">
+                @if (IsLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Signing in...</span>
+                }
+                else
+                {
+                    <span>Sign In</span>
+                }
+            </MudButton>
+
+            <MudDivider Class="my-4">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">or continue with</MudText>
+            </MudDivider>
+
+            <div class="d-flex gap-3">
+                <MudButton Variant="Variant.Outlined" FullWidth="true" OnClick='() => HandleExternalLogin("Google")'
+                           StartIcon="@Icons.Material.Filled.Public" Class="external-btn">Google</MudButton>
+                <MudButton Variant="Variant.Outlined" FullWidth="true" OnClick='() => HandleExternalLogin("Facebook")'
+                           StartIcon="@Icons.Material.Filled.Group" Class="external-btn">Facebook</MudButton>
+            </div>
+
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4" Color="Color.Secondary">
+                Don't have an account? <MudLink Href="/register" Color="Color.Primary">Sign Up</MudLink>
+            </MudText>
+        </MudPaper>
+    </MudContainer>
 </div>
 
 @code {
     [SupplyParameterFromQuery] public string ReturnUrl { get; set; } = "/";
+
+    private LoginRequest LoginModel = new();
+    private List<string> Errors = new();
+    private bool IsLoading;
+    private bool _showPassword;
+
+    private async Task HandleLogin()
+    {
+        Errors.Clear();
+        IsLoading = true;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/login", LoginModel);
+            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+
+            if (result?.Succeeded == true)
+            {
+                await AuthStateProvider.LoginAsync(result);
+                Navigation.NavigateTo(ReturnUrl);
+            }
+            else
+            {
+                Errors = result?.Errors ?? new List<string> { "Login failed." };
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Add($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void HandleExternalLogin(string provider)
+    {
+        Navigation.NavigateTo($"api/auth/external-login/{provider}?returnUrl={Uri.EscapeDataString(ReturnUrl)}", forceLoad: true);
+    }
 }

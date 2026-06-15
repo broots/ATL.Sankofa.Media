@@ -5,45 +5,100 @@
 
 <PageTitle>@(Stream?.Title ?? "Live") - ATL Sankofa Media</PageTitle>
 
-<div class="live-watch-container">
+<div class="live-page">
     @if (Stream != null)
     {
-        <div class="live-player">
-            <VideoPlayer PlaybackUrl="@PlaybackUrl"
-                         ShowPaywall="@ShowPaywall"
-                         PaywallMessage="@PaywallMessage"
-                         PurchasePrice="@Stream.TicketPrice"
-                         OnPurchase="HandlePurchaseTicket"
-                         OnSubscribe="HandleSubscribe" />
+        <div class="theater-section">
+            <div class="player-wrapper">
+                <VideoPlayer PlaybackUrl="@PlaybackUrl"
+                             ShowPaywall="@ShowPaywall"
+                             PaywallMessage="@PaywallMessage"
+                             PurchasePrice="@Stream.TicketPrice"
+                             OnPurchase="HandlePurchaseTicket"
+                             OnSubscribe="HandleSubscribe" />
+            </div>
         </div>
 
-        <div class="live-info">
-            <div class="live-header">
-                <h1>@Stream.Title</h1>
-                @if (Stream.Status == LiveStreamStatus.Live)
-                {
-                    <span class="live-indicator">🔴 LIVE</span>
-                    <span class="viewer-count">@Stream.ConcurrentViewers watching now</span>
-                }
-            </div>
-            <div class="live-channel">
-                <strong>@Stream.ChannelName</strong>
-            </div>
-            @if (!string.IsNullOrEmpty(Stream.Description))
-            {
-                <div class="live-description">
-                    <p>@Stream.Description</p>
-                </div>
-            }
-        </div>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+            <MudGrid>
+                <MudItem xs="12" md="8">
+                    <MudPaper Class="video-info-card pa-4" Elevation="0">
+                        <div class="d-flex align-center gap-3">
+                            <MudText Typo="Typo.h5" Class="video-title-text" Style="flex: 1;">@Stream.Title</MudText>
+                            @if (Stream.Status == LiveStreamStatus.Live)
+                            {
+                                <MudChip T="string" Color="Color.Error" Size="Size.Small" Class="pulse-chip">🔴 LIVE</MudChip>
+                            }
+                        </div>
+
+                        <div class="video-meta-row mt-2">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" Class="mr-1" />
+                                @Stream.ConcurrentViewers.ToString("N0") watching now
+                                @if (Stream.ActualStartTime.HasValue)
+                                {
+                                    <span> • Started @Stream.ActualStartTime.Value.ToString("h:mm tt")</span>
+                                }
+                            </MudText>
+                        </div>
+
+                        <MudDivider Class="my-3" />
+
+                        <div class="channel-row">
+                            <MudAvatar Color="Color.Secondary" Size="Size.Large">
+                                @Stream.ChannelName.FirstOrDefault()
+                            </MudAvatar>
+                            <div class="channel-info ml-3">
+                                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">@Stream.ChannelName</MudText>
+                            </div>
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Notifications">
+                                Subscribe
+                            </MudButton>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Stream.Description))
+                        {
+                            <MudPaper Class="description-box mt-3 pa-3" Elevation="0">
+                                <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Stream.Description</MudText>
+                            </MudPaper>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="sidebar-card pa-3" Elevation="0" Style="height: 400px;">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3" Style="font-weight: 600;">
+                            <MudIcon Icon="@Icons.Material.Filled.Chat" Size="Size.Small" Class="mr-1" />
+                            Live Chat
+                        </MudText>
+                        <MudDivider Class="mb-3" />
+                        <div class="chat-placeholder">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary" Align="Align.Center">
+                                Live chat coming soon...
+                            </MudText>
+                        </div>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
     }
     else if (IsLoading)
     {
-        <p>Loading...</p>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="500px" Width="100%" Animation="Animation.Wave" Class="rounded-lg" />
+            <MudSkeleton Width="60%" Height="32px" Class="mt-4" Animation="Animation.Wave" />
+            <MudSkeleton Width="30%" Height="20px" Class="mt-2" Animation="Animation.Wave" />
+        </MudContainer>
     }
     else
     {
-        <p>Live stream not found.</p>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12 text-center">
+            <MudIcon Icon="@Icons.Material.Filled.LiveTv" Size="Size.Large" Color="Color.Secondary" />
+            <MudText Typo="Typo.h5" Class="mt-3">Stream not found</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">This live stream may have ended or is unavailable.</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">Go Home</MudButton>
+        </MudContainer>
     }
 </div>
 

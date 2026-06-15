@@ -1,7 +1,128 @@
 @page "/register"
+@using ATL.Sankofa.Media.Business.Models
+@using ATL.Sankofa.Media.UI.Shared.Auth
+@using System.Net.Http.Json
+@inject HttpClient Http
+@inject TokenAuthStateProvider AuthStateProvider
+@inject NavigationManager Navigation
 
 <PageTitle>Sign Up - ATL Sankofa Media</PageTitle>
 
-<div class="auth-page">
-    <RegisterForm />
+<div class="auth-page-wrapper">
+    <MudContainer MaxWidth="MaxWidth.ExtraSmall" Class="auth-container">
+        <MudPaper Class="auth-card pa-6" Elevation="0">
+            <div class="text-center mb-4">
+                <MudText Typo="Typo.h4" Style="font-weight: 800;">
+                    <span style="background: linear-gradient(135deg, #7c4dff, #ff6d00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                        Create Account
+                    </span>
+                </MudText>
+                <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">Join the ATL Sankofa Media community</MudText>
+            </div>
+
+            @if (Errors.Count > 0)
+            {
+                <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Class="mb-4" Dense="true">
+                    @foreach (var error in Errors)
+                    {
+                        <MudText Typo="Typo.body2">@error</MudText>
+                    }
+                </MudAlert>
+            }
+
+            <MudTextField T="string" @bind-Value="RegisterModel.DisplayName" Label="Display Name" Variant="Variant.Outlined"
+                          Placeholder="Your display name" Class="mb-3"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Badge" />
+
+            <MudTextField T="string" @bind-Value="RegisterModel.UserName" Label="Username" Variant="Variant.Outlined"
+                          Placeholder="username" Class="mb-3"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AlternateEmail" />
+
+            <MudTextField T="string" @bind-Value="RegisterModel.Email" Label="Email" Variant="Variant.Outlined"
+                          InputType="InputType.Email" Placeholder="you@email.com" Class="mb-3"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Email" />
+
+            <MudTextField T="string" @bind-Value="RegisterModel.Password" Label="Password" Variant="Variant.Outlined"
+                          InputType="@(_showPassword ? InputType.Text : InputType.Password)" Class="mb-3"
+                          HelperText="Min 8 characters"
+                          Adornment="Adornment.End" AdornmentIcon="@(_showPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                          OnAdornmentClick="() => _showPassword = !_showPassword" />
+
+            <MudTextField T="string" @bind-Value="RegisterModel.ConfirmPassword" Label="Confirm Password" Variant="Variant.Outlined"
+                          InputType="@(_showConfirmPassword ? InputType.Text : InputType.Password)" Class="mb-4"
+                          Adornment="Adornment.End" AdornmentIcon="@(_showConfirmPassword ? Icons.Material.Filled.Visibility : Icons.Material.Filled.VisibilityOff)"
+                          OnAdornmentClick="() => _showConfirmPassword = !_showConfirmPassword" />
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" Size="Size.Large"
+                       OnClick="HandleRegister" Disabled="IsLoading" Class="auth-submit-btn">
+                @if (IsLoading)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                    <span>Creating account...</span>
+                }
+                else
+                {
+                    <span>Sign Up</span>
+                }
+            </MudButton>
+
+            <MudDivider Class="my-4">
+                <MudText Typo="Typo.caption" Color="Color.Secondary">or continue with</MudText>
+            </MudDivider>
+
+            <div class="d-flex gap-3">
+                <MudButton Variant="Variant.Outlined" FullWidth="true" OnClick='() => HandleExternalLogin("Google")'
+                           StartIcon="@Icons.Material.Filled.Public" Class="external-btn">Google</MudButton>
+                <MudButton Variant="Variant.Outlined" FullWidth="true" OnClick='() => HandleExternalLogin("Facebook")'
+                           StartIcon="@Icons.Material.Filled.Group" Class="external-btn">Facebook</MudButton>
+            </div>
+
+            <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-4" Color="Color.Secondary">
+                Already have an account? <MudLink Href="/login" Color="Color.Primary">Sign In</MudLink>
+            </MudText>
+        </MudPaper>
+    </MudContainer>
 </div>
+
+@code {
+    private RegisterRequest RegisterModel = new();
+    private List<string> Errors = new();
+    private bool IsLoading;
+    private bool _showPassword;
+    private bool _showConfirmPassword;
+
+    private async Task HandleRegister()
+    {
+        Errors.Clear();
+        IsLoading = true;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/auth/register", RegisterModel);
+            var result = await response.Content.ReadFromJsonAsync<AuthResponse>();
+
+            if (result?.Succeeded == true)
+            {
+                await AuthStateProvider.LoginAsync(result);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                Errors = result?.Errors ?? new List<string> { "Registration failed." };
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Add($"An error occurred: {ex.Message}");
+        }
+        finally
+        {
+            IsLoading = false;
+        }
+    }
+
+    private void HandleExternalLogin(string provider)
+    {
+        Navigation.NavigateTo($"api/auth/external-login/{provider}?returnUrl=/", forceLoad: true);
+    }
+}

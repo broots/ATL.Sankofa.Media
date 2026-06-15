@@ -1,0 +1,154 @@
+/* ─── Channel Banner ─── */
+.channel-banner {
+    position: relative;
+    height: 200px;
+    background: linear-gradient(135deg, #1a1a3e 0%, #0f0f23 50%, #2a1a4e 100%);
+    overflow: hidden;
+}
+
+.channel-banner::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse at 30% 50%, rgba(124, 77, 255, 0.15) 0%, transparent 70%);
+}
+
+.banner-gradient {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to top, #0a0a1a, transparent);
+}
+
+::deep .channel-profile-section {
+    position: absolute;
+    bottom: -44px;
+    left: 0;
+    right: 0;
+}
+
+.profile-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+}
+
+::deep .profile-avatar {
+    border: 3px solid #0a0a1a;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+::deep .channel-display-name {
+    font-weight: 800;
+    letter-spacing: -0.5px;
+}
+
+::deep .subscribe-channel-btn {
+    border-radius: 20px !important;
+    text-transform: none;
+    font-weight: 600;
+}
+
+/* ─── Tabs ─── */
+::deep .channel-tabs {
+    margin-top: 60px;
+}
+
+::deep .channel-tabs .mud-tab {
+    text-transform: none;
+    font-weight: 600;
+}
+
+/* ─── Video Cards (reuse from Home) ─── */
+::deep .video-card {
+    background: rgba(20, 20, 40, 0.6) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px !important;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::deep .video-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: rgba(124, 77, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(124, 77, 255, 0.2);
+}
+
+.card-thumbnail {
+    position: relative;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+}
+
+::deep .thumbnail-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+::deep .video-card:hover .thumbnail-img {
+    transform: scale(1.08);
+}
+
+.duration-badge {
+    position: absolute;
+    bottom: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+::deep .card-title {
+    font-weight: 600;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* ─── About Panel ─── */
+::deep .about-panel {
+    background: rgba(20, 20, 40, 0.6) !important;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px !important;
+}
+
+/* ─── Empty State ─── */
+.empty-state-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 20px;
+    opacity: 0.7;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    .channel-banner {
+        height: 140px;
+    }
+
+    .profile-row {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    ::deep .channel-profile-section {
+        bottom: -60px;
+    }
+
+    ::deep .channel-tabs {
+        margin-top: 80px;
+    }
+}

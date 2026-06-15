@@ -5,45 +5,107 @@
 
 <PageTitle>@(Video?.Title ?? "Watch") - ATL Sankofa Media</PageTitle>
 
-<div class="watch-container">
+<div class="watch-page">
     @if (Video != null)
     {
-        <div class="watch-player">
-            <VideoPlayer PlaybackUrl="@PlaybackUrl"
-                         ShowPaywall="@ShowPaywall"
-                         PaywallMessage="@PaywallMessage"
-                         PurchasePrice="@Video.PurchasePrice"
-                         OnPurchase="HandlePurchase"
-                         OnSubscribe="HandleSubscribe" />
+        <div class="theater-section">
+            <div class="player-wrapper">
+                <VideoPlayer PlaybackUrl="@PlaybackUrl"
+                             ShowPaywall="@ShowPaywall"
+                             PaywallMessage="@PaywallMessage"
+                             PurchasePrice="@Video.PurchasePrice"
+                             OnPurchase="HandlePurchase"
+                             OnSubscribe="HandleSubscribe" />
+            </div>
         </div>
 
-        <div class="watch-info">
-            <h1>@Video.Title</h1>
-            <div class="watch-stats">
-                <span>@Video.ViewCount.ToString("N0") views</span>
-                @if (Video.PublishedAt.HasValue)
-                {
-                    <span>&bull; @Video.PublishedAt.Value.ToString("MMM d, yyyy")</span>
-                }
-            </div>
-            <div class="watch-channel">
-                <strong>@Video.ChannelName</strong>
-            </div>
-            @if (!string.IsNullOrEmpty(Video.Description))
-            {
-                <div class="watch-description">
-                    <p>@Video.Description</p>
-                </div>
-            }
-        </div>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+            <MudGrid>
+                <MudItem xs="12" md="8">
+                    <MudPaper Class="video-info-card pa-4" Elevation="0">
+                        <MudText Typo="Typo.h5" Class="video-title-text">@Video.Title</MudText>
+                        <div class="video-meta-row mt-2">
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                @Video.ViewCount.ToString("N0") views
+                                @if (Video.PublishedAt.HasValue)
+                                {
+                                    <span> • @Video.PublishedAt.Value.ToString("MMM d, yyyy")</span>
+                                }
+                            </MudText>
+                            <div class="action-buttons">
+                                <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.ThumbUp" Color="Color.Primary">
+                                    @Video.LikeCount.ToString("N0")
+                                </MudButton>
+                                <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Share" Color="Color.Default">
+                                    Share
+                                </MudButton>
+                                <MudButton Variant="Variant.Text" StartIcon="@Icons.Material.Filled.PlaylistAdd" Color="Color.Default">
+                                    Save
+                                </MudButton>
+                            </div>
+                        </div>
+
+                        <MudDivider Class="my-3" />
+
+                        <div class="channel-row">
+                            <MudAvatar Color="Color.Primary" Size="Size.Large">
+                                @Video.ChannelName.FirstOrDefault()
+                            </MudAvatar>
+                            <div class="channel-info ml-3">
+                                <MudLink Href="@($"/channel/{Video.ChannelName}")" Typo="Typo.subtitle1" Color="Color.Inherit" Class="channel-link">
+                                    @Video.ChannelName
+                                </MudLink>
+                            </div>
+                            <MudSpacer />
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="subscribe-btn">
+                                Subscribe
+                            </MudButton>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(Video.Description))
+                        {
+                            <MudPaper Class="description-box mt-3 pa-3" Elevation="0">
+                                <MudText Typo="Typo.body2" Style="white-space: pre-wrap;">@Video.Description</MudText>
+                            </MudPaper>
+                        }
+
+                        @if (!string.IsNullOrEmpty(Video.Tags))
+                        {
+                            <div class="tags-row mt-3">
+                                @foreach (var tag in Video.Tags.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                                {
+                                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small">#@tag</MudChip>
+                                }
+                            </div>
+                        }
+                    </MudPaper>
+                </MudItem>
+
+                <MudItem xs="12" md="4">
+                    <MudPaper Class="sidebar-card pa-3" Elevation="0">
+                        <MudText Typo="Typo.subtitle1" Class="mb-3" Style="font-weight: 600;">Up Next</MudText>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary">More videos coming soon...</MudText>
+                    </MudPaper>
+                </MudItem>
+            </MudGrid>
+        </MudContainer>
     }
     else if (IsLoading)
     {
-        <p>Loading...</p>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="500px" Width="100%" Animation="Animation.Wave" Class="rounded-lg" />
+            <MudSkeleton Width="60%" Height="32px" Class="mt-4" Animation="Animation.Wave" />
+            <MudSkeleton Width="30%" Height="20px" Class="mt-2" Animation="Animation.Wave" />
+        </MudContainer>
     }
     else
     {
-        <p>Video not found.</p>
+        <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12 text-center">
+            <MudIcon Icon="@Icons.Material.Filled.VideoLibrary" Size="Size.Large" Color="Color.Secondary" />
+            <MudText Typo="Typo.h5" Class="mt-3">Video not found</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">This video may have been removed or is unavailable.</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">Go Home</MudButton>
+        </MudContainer>
     }
 </div>
 

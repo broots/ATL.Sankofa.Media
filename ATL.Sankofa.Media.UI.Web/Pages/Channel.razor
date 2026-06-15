@@ -1,57 +1,126 @@
 @page "/channel/{Handle}"
 @inject IChannelService ChannelService
 @inject IVideoService VideoService
+@inject NavigationManager Navigation
 
 <PageTitle>@(ChannelInfo?.Name ?? "Channel") - ATL Sankofa Media</PageTitle>
 
-<div class="channel-page">
-    @if (ChannelInfo != null)
-    {
-        <ChannelHeader Channel="ChannelInfo"
-                       IsSubscribed="IsSubscribed"
-                       OnSubscribe="HandleSubscribe" />
-
-        <div class="channel-content">
-            <div class="channel-tabs">
-                <button class="@(ActiveTab == "videos" ? "active" : "")" @onclick="@(() => ActiveTab = "videos")">Videos</button>
-                <button class="@(ActiveTab == "live" ? "active" : "")" @onclick="@(() => ActiveTab = "live")">Live</button>
-                <button class="@(ActiveTab == "about" ? "active" : "")" @onclick="@(() => ActiveTab = "about")">About</button>
+@if (ChannelInfo != null)
+{
+    @* ─── Channel Banner & Profile ─── *@
+    <div class="channel-banner">
+        <div class="banner-gradient"></div>
+        <MudContainer MaxWidth="MaxWidth.Large" Class="channel-profile-section">
+            <div class="profile-row">
+                <MudAvatar Size="Size.Large" Style="width: 88px; height: 88px; font-size: 2rem;" Color="Color.Primary" Class="profile-avatar">
+                    @ChannelInfo.Name.FirstOrDefault()
+                </MudAvatar>
+                <div class="profile-info ml-4">
+                    <MudText Typo="Typo.h4" Class="channel-display-name">@ChannelInfo.Name</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">@@@ChannelInfo.Handle</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mt-1">
+                        @(Videos?.TotalCount ?? 0) videos • Joined @ChannelInfo.CreatedAt.ToString("MMMM yyyy")
+                    </MudText>
+                </div>
+                <MudSpacer />
+                @if (IsSubscribed)
+                {
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Check"
+                               OnClick="HandleSubscribe" Class="subscribe-channel-btn">
+                        Subscribed
+                    </MudButton>
+                }
+                else
+                {
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PersonAdd"
+                               OnClick="HandleSubscribe" Class="subscribe-channel-btn">
+                        Subscribe
+                    </MudButton>
+                }
             </div>
+        </MudContainer>
+    </div>
 
-            @if (ActiveTab == "videos")
-            {
-                <div class="video-grid">
-                    @if (Videos?.Videos?.Count > 0)
-                    {
+    @* ─── Tabs ─── *@
+    <MudContainer MaxWidth="MaxWidth.Large">
+        <MudTabs Elevation="0" Rounded="true" ApplyEffectsToContainer="true" Class="channel-tabs"
+                 PanelClass="pa-4">
+            <MudTabPanel Text="Videos" Icon="@Icons.Material.Filled.VideoLibrary">
+                @if (Videos?.Videos?.Count > 0)
+                {
+                    <MudGrid Spacing="3" Class="mt-2">
                         @foreach (var video in Videos.Videos)
                         {
-                            <VideoCard Video="video" OnVideoSelected="NavigateToVideo" />
+                            <MudItem xs="12" sm="6" md="4" lg="3">
+                                <MudCard Class="video-card" @onclick="() => NavigateToVideo(video)">
+                                    <div class="card-thumbnail">
+                                        <MudImage Src="@(video.ThumbnailUrl ?? "images/placeholder.jpg")" Alt="@video.Title"
+                                                  ObjectFit="ObjectFit.Cover" Height="180" Width="320" Class="thumbnail-img" />
+                                        @if (video.Duration.HasValue)
+                                        {
+                                            <div class="duration-badge">@FormatDuration(video.Duration.Value)</div>
+                                        }
+                                    </div>
+                                    <MudCardContent>
+                                        <MudText Typo="Typo.subtitle2" Class="card-title">@video.Title</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @video.ViewCount.ToString("N0") views
+                                            @if (video.PublishedAt.HasValue)
+                                            {
+                                                <span> • @video.PublishedAt.Value.ToString("MMM d, yyyy")</span>
+                                            }
+                                        </MudText>
+                                    </MudCardContent>
+                                </MudCard>
+                            </MudItem>
                         }
-                    }
-                    else
-                    {
-                        <p class="empty-state">No videos yet</p>
-                    }
-                </div>
-            }
-            else if (ActiveTab == "about")
-            {
-                <div class="channel-about">
-                    <p>@ChannelInfo.Description</p>
-                    <p><strong>Joined:</strong> @ChannelInfo.CreatedAt.ToString("MMMM yyyy")</p>
-                </div>
-            }
+                    </MudGrid>
+                }
+                else
+                {
+                    <div class="empty-state-container">
+                        <MudIcon Icon="@Icons.Material.Filled.VideoLibrary" Size="Size.Large" Color="Color.Secondary" />
+                        <MudText Typo="Typo.h6" Class="mt-3" Color="Color.Secondary">No videos yet</MudText>
+                    </div>
+                }
+            </MudTabPanel>
+
+            <MudTabPanel Text="About" Icon="@Icons.Material.Filled.Info">
+                <MudPaper Class="about-panel pa-4 mt-2" Elevation="0">
+                    <MudText Typo="Typo.h6" Class="mb-2">About</MudText>
+                    <MudText Typo="Typo.body1">@(ChannelInfo.Description ?? "No description available.")</MudText>
+                    <MudDivider Class="my-4" />
+                    <MudText Typo="Typo.subtitle2" Color="Color.Secondary">
+                        <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Size="Size.Small" Class="mr-1" />
+                        Joined @ChannelInfo.CreatedAt.ToString("MMMM yyyy")
+                    </MudText>
+                </MudPaper>
+            </MudTabPanel>
+        </MudTabs>
+    </MudContainer>
+}
+else if (IsLoading)
+{
+    <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Width="100%" Animation="Animation.Wave" Class="rounded-lg" />
+        <div class="d-flex align-center mt-4">
+            <MudSkeleton SkeletonType="SkeletonType.Circle" Width="88px" Height="88px" Animation="Animation.Wave" />
+            <div class="ml-4">
+                <MudSkeleton Width="200px" Height="32px" Animation="Animation.Wave" />
+                <MudSkeleton Width="150px" Height="20px" Class="mt-2" Animation="Animation.Wave" />
+            </div>
         </div>
-    }
-    else if (IsLoading)
-    {
-        <p>Loading...</p>
-    }
-    else
-    {
-        <p>Channel not found.</p>
-    }
-</div>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12 text-center">
+        <MudIcon Icon="@Icons.Material.Filled.PersonOff" Size="Size.Large" Color="Color.Secondary" />
+        <MudText Typo="Typo.h5" Class="mt-3">Channel not found</MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">This channel may not exist or has been removed.</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/" Class="mt-4">Go Home</MudButton>
+    </MudContainer>
+}
 
 @code {
     [Parameter] public string Handle { get; set; } = string.Empty;
@@ -60,7 +129,6 @@
     private VideoListResponse? Videos;
     private bool IsSubscribed = false;
     private bool IsLoading = true;
-    private string ActiveTab = "videos";
 
     protected override async Task OnInitializedAsync()
     {
@@ -74,11 +142,16 @@
 
     private void NavigateToVideo(VideoDto video)
     {
-        // Navigate to watch page
+        Navigation.NavigateTo($"/watch/{video.Id}");
     }
 
     private void HandleSubscribe()
     {
-        // Handle subscription
+        IsSubscribed = !IsSubscribed;
     }
+
+    private static string FormatDuration(TimeSpan duration) =>
+        duration.TotalHours >= 1
+            ? $"{(int)duration.TotalHours}:{duration.Minutes:D2}:{duration.Seconds:D2}"
+            : $"{duration.Minutes}:{duration.Seconds:D2}";
 }

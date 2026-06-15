@@ -1,0 +1,98 @@
+/* ─── Theater Player Section ─── */
+.watch-page {
+    background: #0a0a1a;
+}
+
+.theater-section {
+    background: #000;
+    display: flex;
+    justify-content: center;
+}
+
+.player-wrapper {
+    width: 100%;
+    max-width: 1280px;
+    aspect-ratio: 16 / 9;
+}
+
+/* ─── Video Info Card ─── */
+::deep .video-info-card {
+    background: rgba(20, 20, 40, 0.6) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px !important;
+}
+
+::deep .video-title-text {
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 1.3;
+}
+
+.video-meta-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 4px;
+}
+
+/* ─── Channel Row ─── */
+.channel-row {
+    display: flex;
+    align-items: center;
+}
+
+::deep .channel-link {
+    font-weight: 600;
+    text-decoration: none;
+}
+
+::deep .channel-link:hover {
+    color: #7c4dff !important;
+}
+
+::deep .subscribe-btn {
+    border-radius: 20px !important;
+    text-transform: none;
+    font-weight: 600;
+}
+
+/* ─── Description & Tags ─── */
+::deep .description-box {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.tags-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* ─── Sidebar ─── */
+::deep .sidebar-card {
+    background: rgba(20, 20, 40, 0.6) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px !important;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+    .video-meta-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .channel-row {
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+}

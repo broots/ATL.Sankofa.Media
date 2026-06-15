@@ -3,33 +3,140 @@
 
 <PageTitle>Subscriptions - ATL Sankofa Media</PageTitle>
 
-<div class="subscriptions-page">
-    <h1>Manage Your Subscription</h1>
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6 mb-8">
+    <div class="text-center mb-6">
+        <MudText Typo="Typo.h4" Style="font-weight: 700;">Choose Your Plan</MudText>
+        <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-1">Unlock premium content and exclusive features</MudText>
+    </div>
 
     @if (CurrentSubscription != null)
     {
-        <div class="current-plan">
-            <h3>Current Plan: @CurrentSubscription.Tier</h3>
-            <p>Status: @CurrentSubscription.Status</p>
-            <p>Next billing: @CurrentSubscription.NextBillingDate?.ToString("MMM d, yyyy")</p>
-            <p>Amount: @CurrentSubscription.Price.ToString("C") / @CurrentSubscription.BillingCycle</p>
-        </div>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-6" Icon="@Icons.Material.Filled.Star">
+            <MudText Typo="Typo.subtitle2">
+                Current Plan: <strong>@CurrentSubscription.Tier</strong> (@CurrentSubscription.Status)
+            </MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Next billing: @CurrentSubscription.NextBillingDate?.ToString("MMM d, yyyy") • @CurrentSubscription.Price.ToString("C")/@CurrentSubscription.BillingCycle
+            </MudText>
+        </MudAlert>
     }
 
-    <SubscriptionPlans CurrentTier="CurrentTier" OnPlanSelected="HandlePlanSelected" />
+    <MudGrid Spacing="4" Justify="Justify.Center">
+        @* Free Tier *@
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Class="@GetPlanCardClass(SubscriptionTier.Free)" Elevation="0">
+                <MudCardContent Class="text-center pa-6">
+                    <MudIcon Icon="@Icons.Material.Filled.PlayCircle" Size="Size.Large" Color="Color.Default" />
+                    <MudText Typo="Typo.h5" Class="mt-3" Style="font-weight: 700;">Free</MudText>
+                    <MudText Typo="Typo.h3" Class="mt-2" Style="font-weight: 800;">$0</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">/month</MudText>
+                    <MudDivider Class="my-4" />
+                    <div class="plan-features">
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ Access free content</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ Standard quality</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ Ad-supported</MudText>
+                    </div>
+                </MudCardContent>
+                <MudCardActions Class="justify-center pb-4">
+                    @if (CurrentTier == SubscriptionTier.Free)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" Disabled="true">Current Plan</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="() => SelectPlan(SubscriptionTier.Free)">Downgrade</MudButton>
+                    }
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
 
-    @if (ShowConfirmation)
-    {
-        <div class="confirmation-modal">
-            <div class="modal-content">
-                <h3>Confirm Subscription Change</h3>
-                <p>You are about to subscribe to the @SelectedTier plan.</p>
-                <button class="btn-confirm" @onclick="ConfirmSubscription">Confirm</button>
-                <button class="btn-cancel" @onclick="@(() => ShowConfirmation = false)">Cancel</button>
-            </div>
-        </div>
-    }
-</div>
+        @* Basic Tier *@
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Class="@GetPlanCardClass(SubscriptionTier.Basic, "featured-plan")" Elevation="4">
+                <div class="popular-badge">
+                    <MudChip T="string" Color="Color.Primary" Size="Size.Small">Most Popular</MudChip>
+                </div>
+                <MudCardContent Class="text-center pa-6">
+                    <MudIcon Icon="@Icons.Material.Filled.Bolt" Size="Size.Large" Color="Color.Primary" />
+                    <MudText Typo="Typo.h5" Class="mt-3" Style="font-weight: 700;">Basic</MudText>
+                    <MudText Typo="Typo.h3" Class="mt-2" Style="font-weight: 800;">$9.99</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">/month</MudText>
+                    <MudDivider Class="my-4" />
+                    <div class="plan-features">
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ All Free features</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ Basic tier content</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ HD quality</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ No ads</MudText>
+                    </div>
+                </MudCardContent>
+                <MudCardActions Class="justify-center pb-4">
+                    @if (CurrentTier == SubscriptionTier.Basic)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="true">Current Plan</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="() => SelectPlan(SubscriptionTier.Basic)">
+                            @(CurrentTier > SubscriptionTier.Basic ? "Downgrade" : "Upgrade")
+                        </MudButton>
+                    }
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+
+        @* Premium Tier *@
+        <MudItem xs="12" sm="6" md="4">
+            <MudCard Class="@GetPlanCardClass(SubscriptionTier.Premium)" Elevation="0">
+                <MudCardContent Class="text-center pa-6">
+                    <MudIcon Icon="@Icons.Material.Filled.Diamond" Size="Size.Large" Color="Color.Secondary" />
+                    <MudText Typo="Typo.h5" Class="mt-3" Style="font-weight: 700;">Premium</MudText>
+                    <MudText Typo="Typo.h3" Class="mt-2" Style="font-weight: 800;">$19.99</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">/month</MudText>
+                    <MudDivider Class="my-4" />
+                    <div class="plan-features">
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ All Basic features</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ Premium tier content</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ 4K quality</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ Offline downloads</MudText>
+                        <MudText Typo="Typo.body2" Class="feature-item">✓ Priority support</MudText>
+                    </div>
+                </MudCardContent>
+                <MudCardActions Class="justify-center pb-4">
+                    @if (CurrentTier == SubscriptionTier.Premium)
+                    {
+                        <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Disabled="true">Current Plan</MudButton>
+                    }
+                    else
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="() => SelectPlan(SubscriptionTier.Premium)">Upgrade</MudButton>
+                    }
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@* ─── Confirmation Dialog ─── *@
+<MudDialog @bind-Visible="ShowConfirmation" Options="new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall, FullWidth = true }">
+    <TitleContent>
+        <MudText Typo="Typo.h6">
+            <MudIcon Icon="@Icons.Material.Filled.CreditCard" Class="mr-2" />
+            Confirm Subscription
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body1" Class="mb-2">
+            You are about to subscribe to the <strong>@SelectedTier</strong> plan.
+        </MudText>
+        <MudText Typo="Typo.body2" Color="Color.Secondary">
+            Your subscription will be billed monthly. You can cancel at any time.
+        </MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="() => ShowConfirmation = false" Variant="Variant.Text">Cancel</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="ConfirmSubscription">Confirm</MudButton>
+    </DialogActions>
+</MudDialog>
 
 @code {
     private SubscriptionDto? CurrentSubscription;
@@ -49,7 +156,7 @@
         }
     }
 
-    private void HandlePlanSelected(SubscriptionTier tier)
+    private void SelectPlan(SubscriptionTier tier)
     {
         SelectedTier = tier;
         ShowConfirmation = true;
@@ -69,5 +176,12 @@
         CurrentTier = SelectedTier;
         ShowConfirmation = false;
         CurrentSubscription = await SubscriptionService.GetActiveSubscriptionAsync(CurrentUserId);
+    }
+
+    private string GetPlanCardClass(SubscriptionTier tier, string extra = "")
+    {
+        var css = $"plan-card {extra}".Trim();
+        if (CurrentTier == tier) css += " active-plan";
+        return css;
     }
 }

@@ -1,0 +1,64 @@
+/* ─── Plan Cards ─── */
+::deep .plan-card {
+    background: rgba(20, 20, 40, 0.6) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px !important;
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: visible;
+}
+
+::deep .plan-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(124, 77, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+::deep .plan-card.active-plan {
+    border-color: rgba(124, 77, 255, 0.5);
+    box-shadow: 0 0 0 2px rgba(124, 77, 255, 0.2), 0 12px 30px rgba(124, 77, 255, 0.15);
+}
+
+::deep .plan-card.featured-plan {
+    border-color: rgba(124, 77, 255, 0.3);
+    background: rgba(30, 20, 60, 0.7) !important;
+}
+
+::deep .plan-card.featured-plan:hover {
+    box-shadow: 0 24px 48px rgba(124, 77, 255, 0.2);
+}
+
+/* ─── Popular Badge ─── */
+.popular-badge {
+    position: absolute;
+    top: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1;
+}
+
+/* ─── Plan Features ─── */
+.plan-features {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: left;
+    padding: 0 8px;
+}
+
+::deep .feature-item {
+    opacity: 0.85;
+    font-size: 0.875rem;
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 600px) {
+    ::deep .plan-card {
+        margin-bottom: 16px;
+    }
+
+    .popular-badge {
+        top: -10px;
+    }
+}

@@ -1,0 +1,42 @@
+/* ─── Upload Form Card ─── */
+::deep .upload-form-card {
+    background: rgba(20, 20, 40, 0.6) !important;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 16px !important;
+}
+
+/* ─── Form Fields ─── */
+::deep .upload-form-card .mud-input-outlined .mud-input-outlined-border {
+    border-color: rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    transition: border-color 0.3s ease;
+}
+
+::deep .upload-form-card .mud-input-outlined:hover .mud-input-outlined-border {
+    border-color: rgba(124, 77, 255, 0.4);
+}
+
+::deep .upload-form-card .mud-input-outlined.mud-input-focused .mud-input-outlined-border {
+    border-color: #7c4dff;
+}
+
+/* ─── Upload Button ─── */
+::deep .upload-btn {
+    border-radius: 12px !important;
+    text-transform: none;
+    font-weight: 600;
+    font-size: 1rem;
+    padding: 12px 24px !important;
+    box-shadow: 0 4px 20px rgba(124, 77, 255, 0.3);
+    transition: all 0.3s ease;
+}
+
+::deep .upload-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(124, 77, 255, 0.5);
+}
+
+::deep .upload-btn:disabled {
+    opacity: 0.6;
+}
