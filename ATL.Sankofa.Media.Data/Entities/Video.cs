@@ -3,7 +3,7 @@ namespace ATL.Sankofa.Media.Data.Entities;
 public class Video
 {
     public Guid Id { get; set; }
-    public Guid ChannelId { get; set; }
+    public Guid? ChannelId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
 
@@ -32,7 +32,7 @@ public class Video
     public DateTime? UpdatedAt { get; set; }
 
     // Navigation properties
-    public Channel Channel { get; set; } = null!;
+    public Channel? Channel { get; set; }
     public ICollection<WatchHistory> WatchHistories { get; set; } = new List<WatchHistory>();
     public ICollection<Payment> Payments { get; set; } = new List<Payment>();
 }

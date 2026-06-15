@@ -6,6 +6,54 @@
     border-radius: 16px !important;
 }
 
+/* ─── Source Selection Cards ─── */
+::deep .source-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+@media (max-width: 600px) {
+    ::deep .source-options {
+        grid-template-columns: 1fr;
+    }
+}
+
+::deep .source-card {
+    background: rgba(255, 255, 255, 0.03) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px !important;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+::deep .source-card:hover {
+    border-color: rgba(124, 77, 255, 0.4);
+    background: rgba(124, 77, 255, 0.05) !important;
+    transform: translateY(-2px);
+}
+
+::deep .source-card-active {
+    border-color: rgba(124, 77, 255, 0.7) !important;
+    background: rgba(124, 77, 255, 0.1) !important;
+    box-shadow: 0 0 20px rgba(124, 77, 255, 0.15);
+}
+
+/* ─── File Drop Zone ─── */
+::deep .file-drop-zone {
+    background: rgba(255, 255, 255, 0.02) !important;
+    border: 2px dashed rgba(255, 255, 255, 0.12);
+    border-radius: 12px !important;
+    min-height: 160px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+}
+
+::deep .file-drop-zone:hover {
+    border-color: rgba(124, 77, 255, 0.5);
+    background: rgba(124, 77, 255, 0.03) !important;
+}
+
 /* ─── Form Fields ─── */
 ::deep .upload-form-card .mud-input-outlined .mud-input-outlined-border {
     border-color: rgba(255, 255, 255, 0.1);

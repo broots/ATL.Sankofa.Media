@@ -22,15 +22,31 @@ public class VideoService : IVideoService
 
     public async Task<VideoUploadResponse> InitiateUploadAsync(VideoUploadRequest request, CancellationToken cancellationToken = default)
     {
+        if (request.ChannelId == Guid.Empty)
+            request.ChannelId = null;
+
+        if (request.ChannelId.HasValue)
+        {
+            var channelExists = await _unitOfWork.Repository<Channel>().Query()
+                .AnyAsync(c => c.Id == request.ChannelId.Value, cancellationToken);
+
+            if (!channelExists)
+                throw new InvalidOperationException($"Channel '{request.ChannelId}' not found.");
+        }
+
+        var meta = new Dictionary<string, string>
+        {
+            ["title"] = request.Title
+        };
+
+        if (request.ChannelId.HasValue)
+            meta["channelId"] = request.ChannelId.Value.ToString();
+
         var uploadRequest = new DirectUploadRequest
         {
             MaxDurationSeconds = request.MaxDurationSeconds,
             RequireSignedUrls = true,
-            Meta = new Dictionary<string, string>
-            {
-                ["title"] = request.Title,
-                ["channelId"] = request.ChannelId.ToString()
-            }
+            Meta = meta
         };
 
         var uploadResult = await _cloudflareClient.CreateDirectUploadAsync(uploadRequest, cancellationToken);

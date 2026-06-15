@@ -20,7 +20,8 @@ public class ChannelConfiguration : IEntityTypeConfiguration<Channel>
         builder.HasMany(c => c.Videos)
             .WithOne(v => v.Channel)
             .HasForeignKey(v => v.ChannelId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
 
         builder.HasMany(c => c.LiveStreams)
             .WithOne(ls => ls.Channel)

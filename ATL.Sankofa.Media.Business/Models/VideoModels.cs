@@ -4,7 +4,7 @@ namespace ATL.Sankofa.Media.Business.Models;
 
 public class VideoUploadRequest
 {
-    public Guid ChannelId { get; set; }
+    public Guid? ChannelId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? Tags { get; set; }
@@ -25,8 +25,8 @@ public class VideoUploadResponse
 public class VideoDto
 {
     public Guid Id { get; set; }
-    public Guid ChannelId { get; set; }
-    public string ChannelName { get; set; } = string.Empty;
+    public Guid? ChannelId { get; set; }
+    public string? ChannelName { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? ThumbnailUrl { get; set; }

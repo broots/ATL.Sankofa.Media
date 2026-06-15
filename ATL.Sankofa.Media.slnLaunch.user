@@ -1,0 +1,15 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "ATL.Sankofa.Media.API\\ATL.Sankofa.Media.API.csproj",
+        "Action": "Start"
+      },
+      {
+        "Path": "ATL.Sankofa.Media.UI.Web\\ATL.Sankofa.Media.UI.Web.csproj",
+        "Action": "Start"
+      }
+    ]
+  }
+]

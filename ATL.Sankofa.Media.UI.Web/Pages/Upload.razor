@@ -1,6 +1,8 @@
 @page "/upload"
 @inject IVideoService VideoService
 @inject IChannelService ChannelService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 <PageTitle>Upload Video - ATL Sankofa Media</PageTitle>
 
@@ -8,107 +10,251 @@
     <MudText Typo="Typo.h4" Class="mb-1" Style="font-weight: 700;">Upload Video</MudText>
     <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">Share your content with the world</MudText>
 
-    <MudPaper Class="upload-form-card pa-6" Elevation="0">
-        <MudGrid Spacing="3">
-            <MudItem xs="12">
-                <MudTextField T="string" @bind-Value="UploadRequest.Title" Label="Title" Variant="Variant.Outlined"
-                              Placeholder="Enter a compelling title" Required="true" RequiredError="Title is required"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" />
-            </MudItem>
-
-            <MudItem xs="12">
-                <MudTextField T="string" @bind-Value="UploadRequest.Description" Label="Description" Variant="Variant.Outlined"
-                              Placeholder="Tell viewers about your video" Lines="4"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" />
-            </MudItem>
-
-            <MudItem xs="12" sm="6">
-                <MudSelect T="string" @bind-Value="UploadRequest.Category" Label="Category" Variant="Variant.Outlined"
-                           Placeholder="Select category" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Category">
-                    <MudSelectItem Value="@("Entertainment")">Entertainment</MudSelectItem>
-                    <MudSelectItem Value="@("Education")">Education</MudSelectItem>
-                    <MudSelectItem Value="@("Music")">Music</MudSelectItem>
-                    <MudSelectItem Value="@("Sports")">Sports</MudSelectItem>
-                    <MudSelectItem Value="@("News")">News</MudSelectItem>
-                    <MudSelectItem Value="@("Technology")">Technology</MudSelectItem>
-                    <MudSelectItem Value="@("Gaming")">Gaming</MudSelectItem>
-                </MudSelect>
-            </MudItem>
-
-            <MudItem xs="12" sm="6">
-                <MudTextField T="string" @bind-Value="UploadRequest.Tags" Label="Tags" Variant="Variant.Outlined"
-                              Placeholder="tag1, tag2, tag3" HelperText="Comma-separated"
-                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Tag" />
-            </MudItem>
-
-            <MudItem xs="12" sm="6">
-                <MudSelect T="VideoVisibility" @bind-Value="UploadRequest.Visibility" Label="Visibility" Variant="Variant.Outlined"
-                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Visibility">
-                    <MudSelectItem Value="VideoVisibility.Private">
-                        <div class="d-flex align-center gap-2">
-                            <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" /> Private
-                        </div>
-                    </MudSelectItem>
-                    <MudSelectItem Value="VideoVisibility.Unlisted">
-                        <div class="d-flex align-center gap-2">
-                            <MudIcon Icon="@Icons.Material.Filled.LinkOff" Size="Size.Small" /> Unlisted
-                        </div>
-                    </MudSelectItem>
-                    <MudSelectItem Value="VideoVisibility.Public">
-                        <div class="d-flex align-center gap-2">
-                            <MudIcon Icon="@Icons.Material.Filled.Public" Size="Size.Small" /> Public
-                        </div>
-                    </MudSelectItem>
-                </MudSelect>
-            </MudItem>
-
-            <MudItem xs="12" sm="6">
-                <MudSelect T="AccessTier" @bind-Value="UploadRequest.RequiredAccessTier" Label="Access Tier" Variant="Variant.Outlined"
-                           Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Shield">
-                    <MudSelectItem Value="AccessTier.Free">Free</MudSelectItem>
-                    <MudSelectItem Value="AccessTier.Basic">Basic Subscribers</MudSelectItem>
-                    <MudSelectItem Value="AccessTier.Premium">Premium Subscribers</MudSelectItem>
-                    <MudSelectItem Value="AccessTier.PayPerView">Pay-Per-View</MudSelectItem>
-                </MudSelect>
-            </MudItem>
-
-            @if (UploadRequest.RequiredAccessTier == AccessTier.PayPerView)
-            {
-                <MudItem xs="12" sm="6">
-                    <MudNumericField T="decimal?" @bind-Value="UploadRequest.PurchasePrice" Label="Purchase Price"
-                                     Variant="Variant.Outlined" Min="0.01m" Step="0.50m" Format="C2"
-                                     Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
-                </MudItem>
-            }
-
-            <MudItem xs="12" Class="mt-2">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true"
-                           StartIcon="@Icons.Material.Filled.CloudUpload" OnClick="InitiateUpload"
-                           Disabled="IsUploading" Class="upload-btn">
-                    @if (IsUploading)
-                    {
-                        <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
-                        <span>Preparing upload...</span>
-                    }
-                    else
-                    {
-                        <span>Upload Video</span>
-                    }
-                </MudButton>
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-
-    @if (!string.IsNullOrEmpty(UploadUrl))
+    @if (_uploadState == UploadState.Complete)
     {
-        <MudAlert Severity="Severity.Success" Variant="Variant.Filled" Class="mt-4"
-                  Icon="@Icons.Material.Filled.CheckCircle">
-            <MudText Typo="Typo.subtitle2">Upload URL ready!</MudText>
-            <MudText Typo="Typo.body2" Class="mt-1">Use this URL to upload your video file:</MudText>
-            <MudPaper Class="pa-2 mt-2" Style="background: rgba(0,0,0,0.2); border-radius: 8px; word-break: break-all;">
-                <code>@UploadUrl</code>
+        <!-- Upload Complete -->
+        <MudPaper Class="upload-form-card pa-8 d-flex flex-column align-center" Elevation="0">
+            <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Style="font-size: 4rem;" />
+            <MudText Typo="Typo.h5" Class="mt-4" Style="font-weight: 700;">Upload Complete!</MudText>
+            <MudText Typo="Typo.body1" Color="Color.Secondary" Class="mt-2">
+                Your video is now being processed by Cloudflare Stream.
+            </MudText>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                Video ID: @_uploadedVideoId
+            </MudText>
+            <div class="d-flex gap-3 mt-6">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.PlayArrow"
+                           OnClick="@(() => Navigation.NavigateTo($"/watch/{_uploadedVideoId}"))">
+                    View Video
+                </MudButton>
+                <MudButton Variant="Variant.Outlined" Color="Color.Default" StartIcon="@Icons.Material.Filled.Upload"
+                           OnClick="ResetUpload">
+                    Upload Another
+                </MudButton>
+            </div>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper Class="upload-form-card pa-6" Elevation="0">
+            <MudGrid Spacing="3">
+
+                <!-- Step 1: File Source Selection -->
+                <MudItem xs="12">
+                    <MudText Typo="Typo.subtitle1" Class="mb-3" Style="font-weight: 600;">
+                        <MudIcon Icon="@Icons.Material.Filled.VideoFile" Class="mr-1" Style="vertical-align: middle;" />
+                        Select Video Source
+                    </MudText>
+                    <div class="source-options">
+                        <MudPaper Class="@SourceCardClass(VideoSource.Device)" Elevation="0" @onclick="() => SelectSource(VideoSource.Device)">
+                            <MudIcon Icon="@Icons.Material.Filled.PhoneAndroid" Style="font-size: 2rem;" Color="Color.Primary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-2">Device</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Browse files</MudText>
+                        </MudPaper>
+                        <MudPaper Class="@SourceCardClass(VideoSource.Camera)" Elevation="0" @onclick="() => SelectSource(VideoSource.Camera)">
+                            <MudIcon Icon="@Icons.Material.Filled.Videocam" Style="font-size: 2rem;" Color="Color.Secondary" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-2">Camera</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Record video</MudText>
+                        </MudPaper>
+                        <MudPaper Class="@SourceCardClass(VideoSource.Cloud)" Elevation="0" @onclick="() => SelectSource(VideoSource.Cloud)">
+                            <MudIcon Icon="@Icons.Material.Filled.Cloud" Style="font-size: 2rem;" Color="Color.Info" />
+                            <MudText Typo="Typo.subtitle2" Class="mt-2">Cloud</MudText>
+                            <MudText Typo="Typo.caption" Color="Color.Secondary">Import from URL</MudText>
+                        </MudPaper>
+                    </div>
+                </MudItem>
+
+                <!-- Device File Picker -->
+                @if (_selectedSource == VideoSource.Device)
+                {
+                    <MudItem xs="12">
+                        <MudFileUpload T="IBrowserFile" Accept="video/*" FilesChanged="OnFileSelected" MaximumFileCount="1">
+                            <ActivatorContent>
+                                <MudPaper Class="file-drop-zone pa-8 d-flex flex-column align-center justify-center" Elevation="0">
+                                    @if (_selectedFile != null)
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.Movie" Style="font-size: 2.5rem;" Color="Color.Success" />
+                                        <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight: 600;">@_selectedFile.Name</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">@FormatFileSize(_selectedFile.Size)</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary" Class="mt-1">Click to change file</MudText>
+                                    }
+                                    else
+                                    {
+                                        <MudIcon Icon="@Icons.Material.Filled.CloudUpload" Style="font-size: 2.5rem;" Color="Color.Primary" />
+                                        <MudText Typo="Typo.subtitle1" Class="mt-2">Click to browse or drag and drop</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">MP4, MOV, MKV, AVI, WebM — up to 5 GB</MudText>
+                                    }
+                                </MudPaper>
+                            </ActivatorContent>
+                        </MudFileUpload>
+                    </MudItem>
+                }
+
+                <!-- Camera Capture -->
+                @if (_selectedSource == VideoSource.Camera)
+                {
+                    <MudItem xs="12">
+                        <MudPaper Class="file-drop-zone pa-8 d-flex flex-column align-center justify-center" Elevation="0"
+                                  @onclick="TriggerCameraCapture" Style="cursor: pointer;">
+                            @if (_cameraFileName != null)
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Movie" Style="font-size: 2.5rem;" Color="Color.Success" />
+                                <MudText Typo="Typo.subtitle1" Class="mt-2" Style="font-weight: 600;">@_cameraFileName</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">@FormatFileSize(_cameraFileSize)</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Primary" Class="mt-1">Tap to record again</MudText>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Videocam" Style="font-size: 2.5rem;" Color="Color.Secondary" />
+                                <MudText Typo="Typo.subtitle1" Class="mt-2">Tap to open camera</MudText>
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Record a video using your device camera</MudText>
+                            }
+                        </MudPaper>
+                        <input type="file" id="cameraFileInput" accept="video/*" capture="environment" style="display:none;" />
+                    </MudItem>
+                }
+
+                <!-- Cloud URL Input -->
+                @if (_selectedSource == VideoSource.Cloud)
+                {
+                    <MudItem xs="12">
+                        <MudTextField T="string" @bind-Value="_cloudUrl" Label="Video URL" Variant="Variant.Outlined"
+                                      Placeholder="https://drive.google.com/... or https://www.dropbox.com/..."
+                                      HelperText="Paste a direct link from Google Drive, Dropbox, OneDrive, or any public URL"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Link"
+                                      Immediate="true" />
+                        @if (_cloudUrlValid)
+                        {
+                            <MudText Typo="Typo.caption" Color="Color.Success" Class="mt-1">
+                                <MudIcon Icon="@Icons.Material.Filled.Check" Size="Size.Small" /> URL validated
+                            </MudText>
+                        }
+                    </MudItem>
+                }
+
+                @if (HasFileSelected)
+                {
+                    <MudItem xs="12">
+                        <MudDivider Class="my-2" />
+                    </MudItem>
+
+                    <!-- Metadata Form -->
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle1" Class="mb-1" Style="font-weight: 600;">
+                            <MudIcon Icon="@Icons.Material.Filled.Edit" Class="mr-1" Style="vertical-align: middle;" />
+                            Video Details
+                        </MudText>
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField T="string" @bind-Value="UploadRequest.Title" Label="Title" Variant="Variant.Outlined"
+                                      Placeholder="Enter a compelling title" Required="true" RequiredError="Title is required"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Title" />
+                    </MudItem>
+
+                    <MudItem xs="12">
+                        <MudTextField T="string" @bind-Value="UploadRequest.Description" Label="Description" Variant="Variant.Outlined"
+                                      Placeholder="Tell viewers about your video" Lines="4"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Description" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="string" @bind-Value="UploadRequest.Category" Label="Category" Variant="Variant.Outlined"
+                                   Placeholder="Select category" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Category">
+                            <MudSelectItem Value="@("Entertainment")">Entertainment</MudSelectItem>
+                            <MudSelectItem Value="@("Education")">Education</MudSelectItem>
+                            <MudSelectItem Value="@("Music")">Music</MudSelectItem>
+                            <MudSelectItem Value="@("Sports")">Sports</MudSelectItem>
+                            <MudSelectItem Value="@("News")">News</MudSelectItem>
+                            <MudSelectItem Value="@("Technology")">Technology</MudSelectItem>
+                            <MudSelectItem Value="@("Gaming")">Gaming</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudTextField T="string" @bind-Value="UploadRequest.Tags" Label="Tags" Variant="Variant.Outlined"
+                                      Placeholder="tag1, tag2, tag3" HelperText="Comma-separated"
+                                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Tag" />
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="VideoVisibility" @bind-Value="UploadRequest.Visibility" Label="Visibility" Variant="Variant.Outlined"
+                                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Visibility">
+                            <MudSelectItem Value="VideoVisibility.Private">
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small" /> Private
+                                </div>
+                            </MudSelectItem>
+                            <MudSelectItem Value="VideoVisibility.Unlisted">
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.LinkOff" Size="Size.Small" /> Unlisted
+                                </div>
+                            </MudSelectItem>
+                            <MudSelectItem Value="VideoVisibility.Public">
+                                <div class="d-flex align-center gap-2">
+                                    <MudIcon Icon="@Icons.Material.Filled.Public" Size="Size.Small" /> Public
+                                </div>
+                            </MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="AccessTier" @bind-Value="UploadRequest.RequiredAccessTier" Label="Access Tier" Variant="Variant.Outlined"
+                                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Shield">
+                            <MudSelectItem Value="AccessTier.Free">Free</MudSelectItem>
+                            <MudSelectItem Value="AccessTier.Basic">Basic Subscribers</MudSelectItem>
+                            <MudSelectItem Value="AccessTier.Premium">Premium Subscribers</MudSelectItem>
+                            <MudSelectItem Value="AccessTier.PayPerView">Pay-Per-View</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+
+                    @if (UploadRequest.RequiredAccessTier == AccessTier.PayPerView)
+                    {
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField T="decimal?" @bind-Value="UploadRequest.PurchasePrice" Label="Purchase Price"
+                                             Variant="Variant.Outlined" Min="0.01m" Step="0.50m" Format="C2"
+                                             Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" />
+                        </MudItem>
+                    }
+
+                    <!-- Upload Button -->
+                    <MudItem xs="12" Class="mt-2">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large" FullWidth="true"
+                                   StartIcon="@Icons.Material.Filled.CloudUpload" OnClick="StartUploadAsync"
+                                   Disabled="@(!CanUpload())" Class="upload-btn">
+                            @if (_uploadState == UploadState.Initiating)
+                            {
+                                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="mr-2" />
+                                <span>Preparing upload...</span>
+                            }
+                            else
+                            {
+                                <span>Upload Video</span>
+                            }
+                        </MudButton>
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudPaper>
+
+        <!-- Upload Progress Overlay -->
+        @if (_uploadState == UploadState.Uploading)
+        {
+            <MudPaper Class="upload-form-card pa-6 mt-4" Elevation="0">
+                <div class="d-flex flex-column align-center">
+                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">Uploading to Cloudflare Stream...</MudText>
+                    <MudProgressLinear Color="Color.Primary" Value="@_uploadProgress" Class="my-4" Style="width: 100%; height: 10px; border-radius: 5px;" />
+                    <MudText Typo="Typo.h6" Color="Color.Primary">@_uploadProgress%</MudText>
+                    <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-1">
+                        @(_selectedFile?.Name ?? _cameraFileName) — @FormatFileSize(_selectedFile?.Size ?? _cameraFileSize)
+                    </MudText>
+                    <MudButton Variant="Variant.Text" Color="Color.Error" Class="mt-4" OnClick="CancelUpload"
+                               StartIcon="@Icons.Material.Filled.Cancel">
+                        Cancel Upload
+                    </MudButton>
+                </div>
             </MudPaper>
-        </MudAlert>
+        }
     }
 
     @if (!string.IsNullOrEmpty(ErrorMessage))
@@ -121,38 +267,223 @@
 </MudContainer>
 
 @code {
+    private enum UploadState { Idle, Initiating, Uploading, Complete }
+    private enum VideoSource { None, Device, Camera, Cloud }
+
     private VideoUploadRequest UploadRequest = new();
-    private string? UploadUrl;
     private string? ErrorMessage;
-    private bool IsUploading;
+    private UploadState _uploadState = UploadState.Idle;
+    private VideoSource _selectedSource = VideoSource.None;
 
-    // Placeholder - in production from auth
+    // File state
+    private IBrowserFile? _selectedFile;
+    private string? _cameraFileName;
+    private long _cameraFileSize;
+    private string _cloudUrl = string.Empty;
+    private bool _cloudUrlValid;
+
+    // Upload state
+    private int _uploadProgress;
+    private string? _uploadedVideoId;
+    private CancellationTokenSource? _uploadCts;
+    private DotNetObjectReference<Upload>? _dotNetRef;
+
     private Guid CurrentChannelId = Guid.Empty;
+    private const long MaxFileSize = 5L * 1024 * 1024 * 1024; // 5 GB
 
-    private async Task InitiateUpload()
+    private bool HasFileSelected =>
+        _selectedFile != null || _cameraFileName != null ||
+        (_selectedSource == VideoSource.Cloud && _cloudUrlValid);
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (string.IsNullOrWhiteSpace(UploadRequest.Title))
+        if (firstRender)
         {
-            ErrorMessage = "Please enter a video title.";
+            _dotNetRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("uploadInterop.initialize", _dotNetRef);
+        }
+    }
+
+    private string SourceCardClass(VideoSource source) =>
+        $"source-card pa-4 d-flex flex-column align-center{(_selectedSource == source ? " source-card-active" : "")}";
+
+    private void SelectSource(VideoSource source)
+    {
+        _selectedSource = source;
+        _selectedFile = null;
+        _cameraFileName = null;
+        _cameraFileSize = 0;
+        _cloudUrl = string.Empty;
+        _cloudUrlValid = false;
+        ErrorMessage = null;
+    }
+
+    private void OnFileSelected(IBrowserFile? file)
+    {
+        ErrorMessage = null;
+        if (file == null) return;
+
+        if (file.Size > MaxFileSize)
+        {
+            ErrorMessage = "File size exceeds the 5 GB limit.";
             return;
         }
 
-        IsUploading = true;
+        if (!file.ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase))
+        {
+            ErrorMessage = "Please select a valid video file.";
+            return;
+        }
+
+        _selectedFile = file;
+
+        if (string.IsNullOrEmpty(UploadRequest.Title))
+        {
+            UploadRequest.Title = Path.GetFileNameWithoutExtension(file.Name);
+        }
+    }
+
+    private async Task TriggerCameraCapture()
+    {
+        await JS.InvokeVoidAsync("uploadInterop.triggerFileInput", "cameraFileInput");
+    }
+
+    [JSInvokable]
+    public void OnCameraFileSelected(string fileName, long fileSize)
+    {
+        _cameraFileName = fileName;
+        _cameraFileSize = fileSize;
+
+        if (string.IsNullOrEmpty(UploadRequest.Title))
+        {
+            UploadRequest.Title = Path.GetFileNameWithoutExtension(fileName);
+        }
+
+        StateHasChanged();
+    }
+
+    private bool CanUpload()
+    {
+        if (_uploadState == UploadState.Initiating) return false;
+        if (string.IsNullOrWhiteSpace(UploadRequest.Title)) return false;
+        return HasFileSelected;
+    }
+
+    private async Task StartUploadAsync()
+    {
+        if (!CanUpload()) return;
+
         ErrorMessage = null;
+        _uploadState = UploadState.Initiating;
+        _uploadCts = new CancellationTokenSource();
 
         try
         {
             UploadRequest.ChannelId = CurrentChannelId;
-            var response = await VideoService.InitiateUploadAsync(UploadRequest);
-            UploadUrl = response.UploadUrl;
+
+            // Validate cloud URL if that source is selected
+            if (_selectedSource == VideoSource.Cloud)
+            {
+                if (!Uri.TryCreate(_cloudUrl, UriKind.Absolute, out var uri) ||
+                    (uri.Scheme != "https" && uri.Scheme != "http"))
+                {
+                    ErrorMessage = "Please enter a valid video URL.";
+                    _uploadState = UploadState.Idle;
+                    return;
+                }
+                _cloudUrlValid = true;
+            }
+
+            // Call API to get Cloudflare direct upload URL
+            var response = await VideoService.InitiateUploadAsync(UploadRequest, _uploadCts.Token);
+            _uploadedVideoId = response.VideoId.ToString();
+
+            // Begin file upload to Cloudflare Stream
+            _uploadState = UploadState.Uploading;
+            _uploadProgress = 0;
+            StateHasChanged();
+
+            if (_selectedSource == VideoSource.Cloud)
+            {
+                // Upload from cloud URL via JS interop
+                await JS.InvokeVoidAsync("uploadInterop.uploadFromUrl", response.UploadUrl, _cloudUrl);
+            }
+            else
+            {
+                // Upload file via TUS protocol
+                var inputId = _selectedSource == VideoSource.Camera ? "cameraFileInput" : null;
+                await JS.InvokeVoidAsync("uploadInterop.tusUpload", inputId, response.UploadUrl);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            _uploadState = UploadState.Idle;
+            ErrorMessage = "Upload was cancelled.";
         }
         catch (Exception ex)
         {
+            _uploadState = UploadState.Idle;
             ErrorMessage = $"Upload failed: {ex.Message}";
         }
-        finally
-        {
-            IsUploading = false;
-        }
+    }
+
+    [JSInvokable]
+    public void OnUploadProgress(int percentage)
+    {
+        _uploadProgress = percentage;
+        InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnUploadComplete()
+    {
+        _uploadProgress = 100;
+        _uploadState = UploadState.Complete;
+        InvokeAsync(StateHasChanged);
+    }
+
+    [JSInvokable]
+    public void OnUploadError(string error)
+    {
+        _uploadState = UploadState.Idle;
+        ErrorMessage = $"Upload failed: {error}";
+        InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CancelUpload()
+    {
+        _uploadCts?.Cancel();
+        await JS.InvokeVoidAsync("uploadInterop.cancelUpload");
+        _uploadState = UploadState.Idle;
+        _uploadProgress = 0;
+    }
+
+    private void ResetUpload()
+    {
+        _uploadState = UploadState.Idle;
+        _selectedSource = VideoSource.None;
+        _selectedFile = null;
+        _cameraFileName = null;
+        _cameraFileSize = 0;
+        _cloudUrl = string.Empty;
+        _cloudUrlValid = false;
+        _uploadProgress = 0;
+        _uploadedVideoId = null;
+        ErrorMessage = null;
+        UploadRequest = new();
+    }
+
+    private static string FormatFileSize(long bytes)
+    {
+        if (bytes < 1024) return $"{bytes} B";
+        if (bytes < 1024 * 1024) return $"{bytes / 1024.0:F1} KB";
+        if (bytes < 1024L * 1024 * 1024) return $"{bytes / (1024.0 * 1024):F1} MB";
+        return $"{bytes / (1024.0 * 1024 * 1024):F2} GB";
+    }
+
+    public void Dispose()
+    {
+        _dotNetRef?.Dispose();
+        _uploadCts?.Dispose();
     }
 }
