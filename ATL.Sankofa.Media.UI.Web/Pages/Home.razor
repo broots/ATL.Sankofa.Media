@@ -1,62 +1,322 @@
 @page "/"
 @inject IVideoService VideoService
 @inject ILiveStreamService LiveStreamService
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
 
 <PageTitle>ATL Sankofa Media - Home</PageTitle>
 
-<div class="home-container">
-    <section class="live-section">
-        <h2>🔴 Live Now</h2>
-        <div class="stream-grid">
-            @if (ActiveStreams?.LiveStreams?.Count > 0)
-            {
-                @foreach (var stream in ActiveStreams.LiveStreams)
-                {
-                    <LiveStreamCard Stream="stream" OnStreamSelected="NavigateToStream" />
-                }
-            }
-            else
-            {
-                <p class="empty-state">No live streams at the moment</p>
-            }
-        </div>
-    </section>
+@if (_errorMessage is not null)
+{
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Filled" Class="ma-4" ShowCloseIcon="true"
+              CloseIconClicked="() => _errorMessage = null">
+        @_errorMessage
+    </MudAlert>
+}
 
-    <section class="trending-section">
-        <h2>Trending</h2>
-        <div class="video-grid">
-            @if (TrendingVideos?.Videos?.Count > 0)
+@* ─── HERO CAROUSEL ─── *@
+<section class="hero-section">
+    @if (FeaturedVideos?.Count > 0)
+    {
+        <MudCarousel Class="hero-carousel" Style="height: 480px;" AutoCycle="true" AutoCycleTime="TimeSpan.FromSeconds(6)"
+                     ShowArrows="true" ShowBullets="true" EnableSwipeGesture="true" TData="object">
+            @foreach (var video in FeaturedVideos)
             {
-                @foreach (var video in TrendingVideos.Videos)
-                {
-                    <VideoCard Video="video" OnVideoSelected="NavigateToVideo" />
-                }
+                <MudCarouselItem>
+                    <div class="carousel-slide" @onclick="() => NavigateToVideo(video)">
+                        <div class="carousel-bg" style="background-image: url('@(video.ThumbnailUrl ?? "images/placeholder.jpg")')"></div>
+                        <div class="carousel-overlay"></div>
+                        <div class="carousel-content">
+                            <MudChip T="string" Color="Color.Primary" Size="Size.Small" Class="mb-2">Featured</MudChip>
+                            @if (video.Category is not null)
+                            {
+                                <MudChip T="string" Color="Color.Secondary" Size="Size.Small" Class="mb-2">@video.Category</MudChip>
+                            }
+                            <MudText Typo="Typo.h3" Class="carousel-title">@video.Title</MudText>
+                            <div class="carousel-meta">
+                                <MudText Typo="Typo.subtitle1" Class="channel-name">@video.ChannelName</MudText>
+                                <MudText Typo="Typo.body2" Class="video-stats">
+                                    @FormatViewCount(video.ViewCount) views • @FormatTimeAgo(video.PublishedAt)
+                                </MudText>
+                            </div>
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Large"
+                                       StartIcon="@Icons.Material.Filled.PlayArrow" Class="mt-3 play-btn">
+                                Watch Now
+                            </MudButton>
+                        </div>
+                    </div>
+                </MudCarouselItem>
             }
-            else
-            {
-                <p class="empty-state">Loading videos...</p>
-            }
+        </MudCarousel>
+    }
+    else
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="480px" Width="100%" Animation="Animation.Wave" />
+    }
+</section>
+
+@* ─── LIVE NOW ─── *@
+@if (ActiveStreams?.LiveStreams?.Count > 0)
+{
+    <section class="content-section">
+        <div class="section-header">
+            <MudText Typo="Typo.h5" Class="section-title">
+                <MudIcon Icon="@Icons.Material.Filled.FiberManualRecord" Color="Color.Error" Size="Size.Small" Class="pulse-dot" />
+                Live Now
+            </MudText>
         </div>
+        <MudGrid Spacing="3">
+            @foreach (var stream in ActiveStreams.LiveStreams)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudCard Class="video-card live-card" @onclick="() => NavigateToStream(stream)">
+                        <div class="card-thumbnail">
+                            <MudImage Src="@(stream.ThumbnailUrl ?? "images/placeholder.jpg")" Alt="@stream.Title"
+                                      ObjectFit="ObjectFit.Cover" Height="180" Width="320" Class="thumbnail-img" />
+                            <div class="live-badge">
+                                <MudChip T="string" Color="Color.Error" Size="Size.Small">🔴 LIVE</MudChip>
+                            </div>
+                            <div class="viewers-badge">
+                                <MudIcon Icon="@Icons.Material.Filled.Visibility" Size="Size.Small" />
+                                @stream.ConcurrentViewers
+                            </div>
+                        </div>
+                        <MudCardContent>
+                            <MudText Typo="Typo.subtitle1" Class="card-title">@stream.Title</MudText>
+                            <MudText Typo="Typo.body2" Color="Color.Secondary">@stream.ChannelName</MudText>
+                        </MudCardContent>
+                    </MudCard>
+                </MudItem>
+            }
+        </MudGrid>
     </section>
-</div>
+}
+
+@* ─── INFINITE SCROLL VIDEO GRID ─── *@
+<section class="content-section">
+    <div class="section-header">
+        <MudText Typo="Typo.h5" Class="section-title">Trending</MudText>
+        <MudChipSet T="string" Class="category-chips" SelectedValueChanged="OnCategoryChanged">
+            <MudChip T="string" Value="@("")" Default="true" Variant="Variant.Outlined">All</MudChip>
+            <MudChip T="string" Value="@("music")" Variant="Variant.Outlined">Music</MudChip>
+            <MudChip T="string" Value="@("culture")" Variant="Variant.Outlined">Culture</MudChip>
+            <MudChip T="string" Value="@("education")" Variant="Variant.Outlined">Education</MudChip>
+            <MudChip T="string" Value="@("entertainment")" Variant="Variant.Outlined">Entertainment</MudChip>
+        </MudChipSet>
+    </div>
+
+    <MudGrid Spacing="3">
+        @foreach (var video in _allVideos)
+        {
+            <MudItem xs="12" sm="6" md="4" lg="3" xl="2">
+                <MudCard Class="video-card" @onclick="() => NavigateToVideo(video)">
+                    <div class="card-thumbnail">
+                        <MudImage Src="@(video.ThumbnailUrl ?? "images/placeholder.jpg")" Alt="@video.Title"
+                                  ObjectFit="ObjectFit.Cover" Height="180" Width="320" Class="thumbnail-img" />
+                        @if (video.Duration.HasValue)
+                        {
+                            <div class="duration-badge">@FormatDuration(video.Duration.Value)</div>
+                        }
+                    </div>
+                    <MudCardContent Class="card-body">
+                        <MudText Typo="Typo.subtitle2" Class="card-title">@video.Title</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Secondary">@video.ChannelName</MudText>
+                        <MudText Typo="Typo.caption" Class="text-muted">
+                            @FormatViewCount(video.ViewCount) views • @FormatTimeAgo(video.PublishedAt)
+                        </MudText>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+
+    @if (_isLoading)
+    {
+        <div class="loading-indicator">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" Size="Size.Large" />
+        </div>
+    }
+
+    @if (!_hasMore && _allVideos.Count > 0)
+    {
+        <MudText Typo="Typo.body2" Align="Align.Center" Class="mt-6 text-muted">
+            You've reached the end 🎬
+        </MudText>
+    }
+
+    @* Sentinel element for infinite scroll *@
+    <div @ref="_scrollSentinel" class="scroll-sentinel"></div>
+</section>
 
 @code {
-    private VideoListResponse? TrendingVideos;
+    private List<VideoDto> FeaturedVideos = new();
     private LiveStreamListResponse? ActiveStreams;
+    private List<VideoDto> _allVideos = new();
+    private int _currentPage = 1;
+    private const int PageSize = 20;
+    private bool _isLoading;
+    private bool _hasMore = true;
+    private string? _selectedCategory;
+    private bool _initialized;
+    private string? _errorMessage;
+    private ElementReference _scrollSentinel;
+    private DotNetObjectReference<Home>? _selfRef;
+    private IJSObjectReference? _observerModule;
+
+    [Inject] private IJSRuntime JS { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
-        TrendingVideos = await VideoService.GetPublicFeedAsync(page: 1, pageSize: 12);
-        ActiveStreams = await LiveStreamService.GetActiveLiveStreamsAsync(page: 1, pageSize: 4);
+        try
+        {
+            // Load featured (top 5) and live streams concurrently
+            var featuredTask = VideoService.GetPublicFeedAsync(page: 1, pageSize: 5);
+            var streamsTask = LiveStreamService.GetActiveLiveStreamsAsync(page: 1, pageSize: 4);
+            var gridTask = VideoService.GetPublicFeedAsync(page: 1, pageSize: PageSize);
+
+            await Task.WhenAll(featuredTask, streamsTask, gridTask);
+
+            var featured = await featuredTask;
+            FeaturedVideos = featured.Videos;
+
+            ActiveStreams = await streamsTask;
+
+            var gridResult = await gridTask;
+            _allVideos = gridResult.Videos;
+            _hasMore = gridResult.Videos.Count == PageSize;
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = "Unable to load videos. Please check that the API is running.";
+            Console.WriteLine($"Home page load error: {ex.Message}");
+        }
+        finally
+        {
+            _initialized = true;
+        }
     }
 
-    private void NavigateToVideo(VideoDto video)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        // Navigate to watch page
+        if (firstRender)
+        {
+            _selfRef = DotNetObjectReference.Create(this);
+            _observerModule = await JS.InvokeAsync<IJSObjectReference>("eval", @"
+                (() => {
+                    let observer = null;
+                    return {
+                        observe: (el, dotnetRef) => {
+                            observer = new IntersectionObserver((entries) => {
+                                if (entries[0].isIntersecting) {
+                                    dotnetRef.invokeMethodAsync('LoadMoreVideos');
+                                }
+                            }, { rootMargin: '200px' });
+                            observer.observe(el);
+                        },
+                        disconnect: () => { if (observer) observer.disconnect(); }
+                    };
+                })()
+            ");
+            await _observerModule.InvokeVoidAsync("observe", _scrollSentinel, _selfRef);
+        }
     }
 
-    private void NavigateToStream(LiveStreamDto stream)
+    [JSInvokable]
+    public async Task LoadMoreVideos()
     {
-        // Navigate to live stream page
+        if (_isLoading || !_hasMore || !_initialized) return;
+
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            _currentPage++;
+            var result = await VideoService.GetPublicFeedAsync(page: _currentPage, pageSize: PageSize, category: _selectedCategory);
+
+            _allVideos.AddRange(result.Videos);
+            _hasMore = result.Videos.Count == PageSize;
+        }
+        catch (Exception ex)
+        {
+            _currentPage--;
+            _hasMore = false;
+            Console.WriteLine($"Load more error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task OnCategoryChanged(string category)
+    {
+        // Guard against MudChipSet firing during initialization
+        if (!_initialized) return;
+
+        _selectedCategory = string.IsNullOrEmpty(category) ? null : category;
+        _currentPage = 1;
+        _allVideos.Clear();
+        _hasMore = true;
+        _isLoading = true;
+        StateHasChanged();
+
+        try
+        {
+            var result = await VideoService.GetPublicFeedAsync(page: 1, pageSize: PageSize, category: _selectedCategory);
+            _allVideos = result.Videos;
+            _hasMore = result.Videos.Count == PageSize;
+        }
+        catch (Exception ex)
+        {
+            _hasMore = false;
+            Console.WriteLine($"Category filter error: {ex.Message}");
+        }
+        finally
+        {
+            _isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void NavigateToVideo(VideoDto video) => Navigation.NavigateTo($"/watch/{video.Id}");
+    private void NavigateToStream(LiveStreamDto stream) => Navigation.NavigateTo($"/live/{stream.Id}");
+
+    private static string FormatViewCount(long views) => views switch
+    {
+        >= 1_000_000 => $"{views / 1_000_000.0:0.#}M",
+        >= 1_000 => $"{views / 1_000.0:0.#}K",
+        _ => views.ToString()
+    };
+
+    private static string FormatDuration(TimeSpan duration) =>
+        duration.TotalHours >= 1
+            ? $"{(int)duration.TotalHours}:{duration.Minutes:D2}:{duration.Seconds:D2}"
+            : $"{duration.Minutes}:{duration.Seconds:D2}";
+
+    private static string FormatTimeAgo(DateTime? date)
+    {
+        if (date is null) return "";
+        var diff = DateTime.UtcNow - date.Value;
+        return diff.TotalDays switch
+        {
+            >= 365 => $"{(int)(diff.TotalDays / 365)}y ago",
+            >= 30 => $"{(int)(diff.TotalDays / 30)}mo ago",
+            >= 7 => $"{(int)(diff.TotalDays / 7)}w ago",
+            >= 1 => $"{(int)diff.TotalDays}d ago",
+            _ when diff.TotalHours >= 1 => $"{(int)diff.TotalHours}h ago",
+            _ => $"{(int)diff.TotalMinutes}m ago"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_observerModule is not null)
+        {
+            await _observerModule.InvokeVoidAsync("disconnect");
+            await _observerModule.DisposeAsync();
+        }
+        _selfRef?.Dispose();
     }
 }

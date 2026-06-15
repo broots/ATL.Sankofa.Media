@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using Microsoft.AspNetCore.Components.Authorization;
+using MudBlazor.Services;
 using ATL.Sankofa.Media.UI.Web;
 using ATL.Sankofa.Media.UI.Web.Auth;
 using ATL.Sankofa.Media.UI.Web.Services;
@@ -10,6 +11,9 @@ using ATL.Sankofa.Media.Business.Interfaces;
 var builder = WebAssemblyHostBuilder.CreateDefault(args);
 builder.RootComponents.Add<App>("#app");
 builder.RootComponents.Add<HeadOutlet>("head::after");
+
+// MudBlazor
+builder.Services.AddMudServices();
 
 // Token storage and auth state
 builder.Services.AddScoped<ITokenStorageService, BrowserTokenStorageService>();

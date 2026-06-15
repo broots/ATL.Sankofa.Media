@@ -35,7 +35,22 @@ public class VideoServiceClient : IVideoService
     {
         var url = $"api/videos/feed?page={page}&pageSize={pageSize}";
         if (!string.IsNullOrEmpty(category)) url += $"&category={Uri.EscapeDataString(category)}";
-        return (await _httpClient.GetFromJsonAsync<VideoListResponse>(url, cancellationToken))!;
+
+        var response = await _httpClient.GetAsync(url, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"VideoService API error: {response.StatusCode} for {url}");
+            return new VideoListResponse();
+        }
+
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+        if (contentType is not null && !contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"VideoService API returned unexpected content type: {contentType} for {url}");
+            return new VideoListResponse();
+        }
+
+        return (await response.Content.ReadFromJsonAsync<VideoListResponse>(cancellationToken)) ?? new VideoListResponse();
     }
 
     public async Task<VideoDto> UpdateVideoAsync(Guid videoId, string? title, string? description, CancellationToken cancellationToken = default)

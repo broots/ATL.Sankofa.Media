@@ -33,8 +33,22 @@ public class LiveStreamServiceClient : ILiveStreamService
 
     public async Task<LiveStreamListResponse> GetActiveLiveStreamsAsync(int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
-        return (await _httpClient.GetFromJsonAsync<LiveStreamListResponse>(
-            $"api/livestreams/active?page={page}&pageSize={pageSize}", cancellationToken))!;
+        var url = $"api/livestreams/active?page={page}&pageSize={pageSize}";
+        var response = await _httpClient.GetAsync(url, cancellationToken);
+        if (!response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"LiveStreamService API error: {response.StatusCode} for {url}");
+            return new LiveStreamListResponse();
+        }
+
+        var contentType = response.Content.Headers.ContentType?.MediaType;
+        if (contentType is not null && !contentType.Contains("json", StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"LiveStreamService API returned unexpected content type: {contentType} for {url}");
+            return new LiveStreamListResponse();
+        }
+
+        return (await response.Content.ReadFromJsonAsync<LiveStreamListResponse>(cancellationToken)) ?? new LiveStreamListResponse();
     }
 
     public async Task<string?> GetPlaybackUrlAsync(Guid liveStreamId, Guid userId, CancellationToken cancellationToken = default)

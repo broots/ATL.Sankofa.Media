@@ -1,17 +1,98 @@
 ﻿@inherits LayoutComponentBase
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="/subscriptions">Subscription</a>
-            <a href="/upload">Upload</a>
-        </div>
+<MudThemeProvider Theme="_theme" IsDarkMode="true" />
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+<MudLayout>
+    <MudAppBar Elevation="0" Dense="true" Class="app-bar-glass">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
+        <MudText Typo="Typo.h6" Class="brand-text">
+            <span class="brand-icon">▶</span> ATL Sankofa Media
+        </MudText>
+        <MudSpacer />
+        <MudTextField T="string" Placeholder="Search videos..." Variant="Variant.Outlined" Margin="Margin.Dense"
+                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
+                      Class="search-bar" Style="max-width: 500px;" />
+        <MudSpacer />
+        <AuthorizeView>
+            <Authorized>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" Href="/upload" Class="mr-2">
+                    Upload
+                </MudButton>
+                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit">
+                    <MudMenuItem Href="/subscriptions" Icon="@Icons.Material.Filled.Subscriptions">Subscriptions</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="HandleLogout">Logout</MudMenuItem>
+                </MudMenu>
+            </Authorized>
+            <NotAuthorized>
+                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Login" Href="/login">
+                    Sign In
+                </MudButton>
+            </NotAuthorized>
+        </AuthorizeView>
+    </MudAppBar>
+
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Variant="DrawerVariant.Mini"
+               Class="drawer-glass">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
+            <MudNavLink Href="/subscriptions" Icon="@Icons.Material.Filled.Subscriptions">Subscriptions</MudNavLink>
+            <AuthorizeView>
+                <Authorized>
+                    <MudNavLink Href="/upload" Icon="@Icons.Material.Filled.VideoCall">Upload</MudNavLink>
+                </Authorized>
+            </AuthorizeView>
+        </MudNavMenu>
+    </MudDrawer>
+
+    <MudMainContent Class="pa-0" Style="min-height: 100vh;">
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#7c4dff",
+            Secondary = "#ff6d00",
+            AppbarBackground = "#1a1a2e",
+            Background = "#0f0f23",
+            Surface = "#16213e",
+            DrawerBackground = "#0f0f23"
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#7c4dff",
+            Secondary = "#ff6d00",
+            AppbarBackground = "rgba(15, 15, 35, 0.85)",
+            Background = "#0a0a1a",
+            Surface = "#141428",
+            DrawerBackground = "#0a0a1a",
+            TextPrimary = "#e0e0e0",
+            TextSecondary = "#a0a0b0"
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography { FontFamily = ["Inter", "sans-serif"] }
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "12px"
+        }
+    };
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+
+    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
+
+    private async Task HandleLogout()
+    {
+        // Implement logout
+    }
+}
