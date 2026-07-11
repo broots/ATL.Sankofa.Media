@@ -439,7 +439,25 @@
     {
         _uploadProgress = 100;
         _uploadState = UploadState.Complete;
-        InvokeAsync(StateHasChanged);
+        InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            // Trigger status sync after a delay to allow Cloudflare processing
+            if (_uploadedVideoId is not null && Guid.TryParse(_uploadedVideoId, out var videoId))
+            {
+                // Retry sync a few times since Cloudflare needs time to process
+                for (int i = 0; i < 5; i++)
+                {
+                    await Task.Delay(3000);
+                    try
+                    {
+                        await VideoService.SyncVideoStatusAsync(videoId);
+                        break;
+                    }
+                    catch { }
+                }
+            }
+        });
     }
 
     [JSInvokable]

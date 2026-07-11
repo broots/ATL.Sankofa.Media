@@ -250,3 +250,53 @@
         padding: 20px 16px;
     }
 }
+
+/* ─── Most Recent Carousel ─── */
+::deep .recent-carousel {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.recent-slide {
+    position: relative;
+    height: 320px;
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.recent-slide-bg {
+    position: absolute;
+    inset: 0;
+    background-size: cover;
+    background-position: center;
+    transition: transform 0.4s ease;
+}
+
+.recent-slide:hover .recent-slide-bg {
+    transform: scale(1.03);
+}
+
+.recent-slide-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%);
+}
+
+.recent-slide-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 24px 32px;
+    color: white;
+}
+
+.recent-slide-title {
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.recent-slide-meta {
+    opacity: 0.85;
+    margin-top: 4px;
+}

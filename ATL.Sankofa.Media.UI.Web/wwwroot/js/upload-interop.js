@@ -75,38 +75,8 @@ window.uploadInterop = {
             return;
         }
 
-        const self = this;
-
-        // Use TUS protocol if library is available
-        if (typeof tus !== 'undefined') {
-            const upload = new tus.Upload(file, {
-                endpoint: uploadUrl,
-                uploadUrl: uploadUrl,
-                retryDelays: [0, 1000, 3000, 5000],
-                chunkSize: 50 * 1024 * 1024, // 50 MB chunks for large video files
-                metadata: {
-                    filename: file.name,
-                    filetype: file.type || 'video/mp4'
-                },
-                onError: function (error) {
-                    console.error('[uploadInterop] TUS error:', error);
-                    self._notifyError(error.message || 'Upload failed. Please try again.');
-                },
-                onProgress: function (bytesUploaded, bytesTotal) {
-                    const pct = Math.round((bytesUploaded / bytesTotal) * 100);
-                    self._notifyProgress(pct);
-                },
-                onSuccess: function () {
-                    self._notifyComplete();
-                }
-            });
-
-            this._currentUpload = upload;
-            upload.start();
-        } else {
-            // Fallback: simple FormData POST (Cloudflare direct upload also accepts this)
-            this._formDataUpload(file, uploadUrl);
-        }
+        // Cloudflare Stream direct upload accepts FormData POST with progress tracking
+        this._formDataUpload(file, uploadUrl);
     },
 
     /**

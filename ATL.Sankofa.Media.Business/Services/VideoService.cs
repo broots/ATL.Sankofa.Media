@@ -45,7 +45,7 @@ public class VideoService : IVideoService
         var uploadRequest = new DirectUploadRequest
         {
             MaxDurationSeconds = request.MaxDurationSeconds,
-            RequireSignedUrls = true,
+            RequireSignedUrls = request.Visibility != VideoVisibility.Public,
             Meta = meta
         };
 
@@ -63,7 +63,8 @@ public class VideoService : IVideoService
             Visibility = request.Visibility,
             RequiredAccessTier = request.RequiredAccessTier,
             PurchasePrice = request.PurchasePrice,
-            Status = VideoStatus.Processing
+            Status = VideoStatus.Processing,
+            PublishedAt = request.Visibility == VideoVisibility.Public ? DateTime.UtcNow : null
         };
 
         await _unitOfWork.Repository<Video>().AddAsync(video, cancellationToken);
@@ -219,6 +220,8 @@ public class VideoService : IVideoService
             video.ThumbnailUrl = cloudflareVideo.Thumbnail;
             if (cloudflareVideo.Duration.HasValue)
                 video.Duration = TimeSpan.FromSeconds(cloudflareVideo.Duration.Value);
+            if (video.PublishedAt == null && video.Visibility == VideoVisibility.Public)
+                video.PublishedAt = DateTime.UtcNow;
         }
         else if (cloudflareVideo.Status?.State == "error")
         {

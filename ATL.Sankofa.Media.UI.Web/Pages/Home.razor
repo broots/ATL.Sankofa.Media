@@ -92,6 +92,41 @@
     </section>
 }
 
+@* ─── MOST RECENT ─── *@
+@if (_recentVideos.Count > 0)
+{
+    <section class="content-section">
+        <div class="section-header">
+            <MudText Typo="Typo.h5" Class="section-title">
+                <MudIcon Icon="@Icons.Material.Filled.NewReleases" Size="Size.Small" Class="mr-1" />
+                Most Recent
+            </MudText>
+        </div>
+        <MudCarousel Class="recent-carousel" Style="height: 320px;" AutoCycle="true" AutoCycleTime="TimeSpan.FromSeconds(5)"
+                     ShowArrows="true" ShowBullets="false" EnableSwipeGesture="true" TData="object">
+            @foreach (var video in _recentVideos)
+            {
+                <MudCarouselItem>
+                    <div class="recent-slide" @onclick="() => NavigateToVideo(video)">
+                        <div class="recent-slide-bg" style="background-image: url('@(video.ThumbnailUrl ?? "images/placeholder.jpg")')"></div>
+                        <div class="recent-slide-overlay"></div>
+                        <div class="recent-slide-content">
+                            @if (video.Duration.HasValue)
+                            {
+                                <MudChip T="string" Size="Size.Small" Class="mb-1">@FormatDuration(video.Duration.Value)</MudChip>
+                            }
+                            <MudText Typo="Typo.h5" Class="recent-slide-title">@video.Title</MudText>
+                            <MudText Typo="Typo.body2" Class="recent-slide-meta">
+                                @video.ChannelName • @FormatTimeAgo(video.PublishedAt)
+                            </MudText>
+                        </div>
+                    </div>
+                </MudCarouselItem>
+            }
+        </MudCarousel>
+    </section>
+}
+
 @* ─── INFINITE SCROLL VIDEO GRID ─── *@
 <section class="content-section">
     <div class="section-header">
@@ -150,6 +185,7 @@
 
 @code {
     private List<VideoDto> FeaturedVideos = new();
+    private List<VideoDto> _recentVideos = new();
     private LiveStreamListResponse? ActiveStreams;
     private List<VideoDto> _allVideos = new();
     private int _currentPage = 1;
@@ -169,15 +205,19 @@
     {
         try
         {
-            // Load featured (top 5) and live streams concurrently
+            // Load featured, recent, live streams, and grid concurrently
             var featuredTask = VideoService.GetPublicFeedAsync(page: 1, pageSize: 5);
+            var recentTask = VideoService.GetPublicFeedAsync(page: 1, pageSize: 10);
             var streamsTask = LiveStreamService.GetActiveLiveStreamsAsync(page: 1, pageSize: 4);
             var gridTask = VideoService.GetPublicFeedAsync(page: 1, pageSize: PageSize);
 
-            await Task.WhenAll(featuredTask, streamsTask, gridTask);
+            await Task.WhenAll(featuredTask, recentTask, streamsTask, gridTask);
 
             var featured = await featuredTask;
             FeaturedVideos = featured.Videos;
+
+            var recent = await recentTask;
+            _recentVideos = recent.Videos;
 
             ActiveStreams = await streamsTask;
 
