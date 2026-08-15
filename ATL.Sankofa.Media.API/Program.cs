@@ -11,6 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add media services (DbContext, repositories, Cloudflare, business services)
 builder.Services.AddMediaServices(builder.Configuration);
 
+// Background sync of Processing videos (moved off the request path from GetPublicFeedAsync)
+builder.Services.AddHostedService<ATL.Sankofa.Media.API.BackgroundServices.VideoStatusSyncService>();
+
 // ASP.NET Identity
 builder.Services.AddIdentity<User, IdentityRole<Guid>>(options =>
 {

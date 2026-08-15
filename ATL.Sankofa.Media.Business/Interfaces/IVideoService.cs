@@ -1,4 +1,5 @@
 using ATL.Sankofa.Media.Business.Models;
+using ATL.Sankofa.Media.Business.Models.Cloudflare;
 
 namespace ATL.Sankofa.Media.Business.Interfaces;
 
@@ -14,4 +15,17 @@ public interface IVideoService
     Task<string?> GetPlaybackUrlAsync(Guid videoId, Guid userId, CancellationToken cancellationToken = default);
     Task IncrementViewCountAsync(Guid videoId, CancellationToken cancellationToken = default);
     Task SyncVideoStatusAsync(Guid videoId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Syncs the status of up to <paramref name="batchSize"/> public videos that are still
+    /// in the Processing state. Intended to be called off the request path by a background
+    /// service. Per-video failures are swallowed so one bad video does not stop the batch.
+    /// </summary>
+    Task SyncPendingPublicVideosAsync(int batchSize = 10, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Applies a Cloudflare Stream webhook notification to the matching video, updating its
+    /// status and playback metadata. Returns false if no video matches the Cloudflare uid.
+    /// </summary>
+    Task<bool> HandleCloudflareWebhookAsync(CloudflareVideoResult payload, CancellationToken cancellationToken = default);
 }

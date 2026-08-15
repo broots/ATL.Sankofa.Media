@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using ATL.Sankofa.Media.Business.Interfaces;
 using ATL.Sankofa.Media.Business.Models;
+using ATL.Sankofa.Media.Business.Models.Cloudflare;
 
 namespace ATL.Sankofa.Media.UI.Web.Services;
 
@@ -86,6 +87,18 @@ public class VideoServiceClient : IVideoService
     public async Task SyncVideoStatusAsync(Guid videoId, CancellationToken cancellationToken = default)
     {
         await _httpClient.PostAsync($"api/videos/{videoId}/sync-status", null, cancellationToken);
+    }
+
+    public Task SyncPendingPublicVideosAsync(int batchSize = 10, CancellationToken cancellationToken = default)
+    {
+        // Server-only operation; not callable from the UI client.
+        throw new NotSupportedException("SyncPendingPublicVideosAsync is a server-side operation.");
+    }
+
+    public Task<bool> HandleCloudflareWebhookAsync(CloudflareVideoResult payload, CancellationToken cancellationToken = default)
+    {
+        // Server-only operation; not callable from the UI client.
+        throw new NotSupportedException("HandleCloudflareWebhookAsync is a server-side operation.");
     }
 
     private class PlaybackUrlResult

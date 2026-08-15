@@ -113,6 +113,10 @@ public class VideoService : IVideoService
 
     public async Task<VideoListResponse> GetPublicFeedAsync(int page = 1, int pageSize = 20, string? category = null, CancellationToken cancellationToken = default)
     {
+        // NOTE: Syncing of Processing videos is handled off the request path by
+        // VideoStatusSyncService (a background hosted service). The feed endpoint only
+        // reads Ready/Public videos so it stays fast and is not exposed to the latency
+        // (and command-timeout driven TaskCanceledException) of external status syncs.
         var query = _unitOfWork.Repository<Video>().Query()
             .Include(v => v.Channel)
             .Where(v => v.Status == VideoStatus.Ready && v.Visibility == VideoVisibility.Public);
@@ -136,6 +140,78 @@ public class VideoService : IVideoService
             Page = page,
             PageSize = pageSize
         };
+    }
+
+    public async Task SyncPendingPublicVideosAsync(int batchSize = 10, CancellationToken cancellationToken = default)
+    {
+        var processingVideos = await _unitOfWork.Repository<Video>().Query()
+            .Where(v => v.Status == VideoStatus.Processing && v.Visibility == VideoVisibility.Public)
+            .Take(batchSize)
+            .ToListAsync(cancellationToken);
+
+        foreach (var pv in processingVideos)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                await SyncVideoStatusAsync(pv.Id, cancellationToken);
+            }
+            catch
+            {
+                // Ignore per-video sync failures; the next background pass will retry.
+            }
+        }
+    }
+
+    public async Task<bool> HandleCloudflareWebhookAsync(CloudflareVideoResult payload, CancellationToken cancellationToken = default)
+    {
+        if (payload == null || string.IsNullOrEmpty(payload.Uid))
+            return false;
+
+        var video = await _unitOfWork.Repository<Video>().Query()
+            .FirstOrDefaultAsync(v => v.CloudflareVideoId == payload.Uid, cancellationToken);
+
+        if (video == null)
+            return false;
+
+        ApplyCloudflareState(video, payload);
+
+        _unitOfWork.Repository<Video>().Update(video);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return true;
+    }
+
+    // Shared mapping from a Cloudflare Stream video result onto our Video entity.
+    // Used by both the webhook handler and the polling SyncVideoStatusAsync path.
+    private static void ApplyCloudflareState(Video video, CloudflareVideoResult result)
+    {
+        var state = result.Status?.State?.ToLowerInvariant();
+        video.Status = state switch
+        {
+            "ready" => VideoStatus.Ready,
+            "error" => VideoStatus.Failed,
+            _ when result.ReadyToStream => VideoStatus.Ready,
+            _ => VideoStatus.Processing
+        };
+
+        if (!string.IsNullOrEmpty(result.Playback?.Hls))
+            video.HlsPlaybackUrl = result.Playback!.Hls;
+        if (!string.IsNullOrEmpty(result.Playback?.Dash))
+            video.DashPlaybackUrl = result.Playback!.Dash;
+        if (!string.IsNullOrEmpty(result.Thumbnail))
+            video.ThumbnailUrl = result.Thumbnail;
+        if (result.Duration.HasValue && result.Duration.Value > 0)
+            video.Duration = TimeSpan.FromSeconds(result.Duration.Value);
+
+        // Stamp publish time the first time a public video becomes ready.
+        if (video.Status == VideoStatus.Ready
+            && video.Visibility == VideoVisibility.Public
+            && video.PublishedAt == null)
+        {
+            video.PublishedAt = DateTime.UtcNow;
+        }
+
+        video.UpdatedAt = DateTime.UtcNow;
     }
 
     public async Task<VideoDto> UpdateVideoAsync(Guid videoId, string? title, string? description, CancellationToken cancellationToken = default)
@@ -212,23 +288,9 @@ public class VideoService : IVideoService
         var cloudflareVideo = await _cloudflareClient.GetVideoAsync(video.CloudflareVideoId, cancellationToken);
         if (cloudflareVideo == null) return;
 
-        if (cloudflareVideo.ReadyToStream)
-        {
-            video.Status = VideoStatus.Ready;
-            video.HlsPlaybackUrl = cloudflareVideo.Playback?.Hls;
-            video.DashPlaybackUrl = cloudflareVideo.Playback?.Dash;
-            video.ThumbnailUrl = cloudflareVideo.Thumbnail;
-            if (cloudflareVideo.Duration.HasValue)
-                video.Duration = TimeSpan.FromSeconds(cloudflareVideo.Duration.Value);
-            if (video.PublishedAt == null && video.Visibility == VideoVisibility.Public)
-                video.PublishedAt = DateTime.UtcNow;
-        }
-        else if (cloudflareVideo.Status?.State == "error")
-        {
-            video.Status = VideoStatus.Failed;
-        }
+        // Reuse the same mapping the webhook path uses so both stay in sync.
+        ApplyCloudflareState(video, cloudflareVideo);
 
-        video.UpdatedAt = DateTime.UtcNow;
         _unitOfWork.Repository<Video>().Update(video);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
