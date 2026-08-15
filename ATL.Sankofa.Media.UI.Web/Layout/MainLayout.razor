@@ -5,94 +5,140 @@
 <MudDialogProvider />
 <MudSnackbarProvider />
 
-<MudLayout>
-    <MudAppBar Elevation="0" Dense="true" Class="app-bar-glass">
-        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="ToggleDrawer" />
-        <MudText Typo="Typo.h6" Class="brand-text">
-            <span class="brand-icon">▶</span> ATL Sankofa Media
-        </MudText>
-        <MudSpacer />
-        <MudTextField T="string" Placeholder="Search videos..." Variant="Variant.Outlined" Margin="Margin.Dense"
-                      Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search"
-                      Class="search-bar" Style="max-width: 500px;" />
-        <MudSpacer />
-        <AuthorizeView>
-            <Authorized>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Upload" Href="/upload" Class="mr-2">
-                    Upload
-                </MudButton>
-                <MudMenu Icon="@Icons.Material.Filled.AccountCircle" Color="Color.Inherit">
-                    <MudMenuItem Href="/subscriptions" Icon="@Icons.Material.Filled.Subscriptions">Subscriptions</MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="HandleLogout">Logout</MudMenuItem>
-                </MudMenu>
-            </Authorized>
-            <NotAuthorized>
-                <MudButton Variant="Variant.Outlined" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Login" Href="/login">
-                    Sign In
-                </MudButton>
-            </NotAuthorized>
-        </AuthorizeView>
-    </MudAppBar>
+<div class="app-shell">
+    @* ─── SIDEBAR ─── *@
+    <aside class="sidebar">
+        <div class="sidebar-top">
+            @* Brand *@
+            <a href="/" class="brand">
+                <div class="brand-icon">
+                    <MudIcon Icon="@Icons.Material.Filled.PlayArrow" Size="Size.Small" />
+                </div>
+                <span class="brand-name">Sankofa</span>
+            </a>
 
-    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2" Variant="DrawerVariant.Mini"
-               Class="drawer-glass">
-        <MudNavMenu>
-            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">Home</MudNavLink>
-            <MudNavLink Href="/subscriptions" Icon="@Icons.Material.Filled.Subscriptions">Subscriptions</MudNavLink>
-            <AuthorizeView>
-                <Authorized>
-                    <MudNavLink Href="/upload" Icon="@Icons.Material.Filled.VideoCall">Upload</MudNavLink>
-                </Authorized>
-            </AuthorizeView>
-        </MudNavMenu>
-    </MudDrawer>
+            @* Navigation *@
+            <nav class="nav-links">
+                <NavLink href="/" class="nav-item" Match="NavLinkMatch.All" ActiveClass="active">
+                    <MudIcon Icon="@Icons.Material.Filled.Home" Size="Size.Small" />
+                    <span>Home</span>
+                </NavLink>
+                <NavLink href="/trending" class="nav-item" ActiveClass="active">
+                    <MudIcon Icon="@Icons.Material.Filled.TrendingUp" Size="Size.Small" />
+                    <span>Trending</span>
+                </NavLink>
+                <NavLink href="/subscriptions" class="nav-item" ActiveClass="active">
+                    <MudIcon Icon="@Icons.Material.Filled.Subscriptions" Size="Size.Small" />
+                    <span>Subscriptions</span>
+                </NavLink>
+                <NavLink href="/library" class="nav-item" ActiveClass="active">
+                    <MudIcon Icon="@Icons.Material.Filled.VideoLibrary" Size="Size.Small" />
+                    <span>Library</span>
+                </NavLink>
+                <NavLink href="/watch-later" class="nav-item" ActiveClass="active">
+                    <MudIcon Icon="@Icons.Material.Filled.WatchLater" Size="Size.Small" />
+                    <span>Watch Later</span>
+                </NavLink>
+                <NavLink href="/settings" class="nav-item" ActiveClass="active">
+                    <MudIcon Icon="@Icons.Material.Filled.Settings" Size="Size.Small" />
+                    <span>Settings</span>
+                </NavLink>
+            </nav>
 
-    <MudMainContent Class="pa-0" Style="min-height: 100vh;">
-        @Body
-    </MudMainContent>
-</MudLayout>
+            @* Subscriptions list *@
+            <div class="subscriptions-section">
+                <span class="section-label">SUBSCRIPTIONS</span>
+                <div class="sub-item">
+                    <div class="sub-info">
+                        <div class="sub-avatar" style="background: #00bc7d; color: #0a0a0a;">NX</div>
+                        <span class="sub-name">NovaXplore</span>
+                    </div>
+                    <MudSwitch T="bool" Value="true" Color="Color.Primary" Class="sub-switch" />
+                </div>
+                <div class="sub-item">
+                    <div class="sub-info">
+                        <div class="sub-avatar" style="background: #ad46ff; color: #0a0a0a;">BG</div>
+                        <span class="sub-name">BeatGarden</span>
+                    </div>
+                    <MudSwitch T="bool" Value="false" Color="Color.Primary" Class="sub-switch" />
+                </div>
+            </div>
+        </div>
+
+        @* Theme toggle *@
+        <div class="theme-toggle">
+            <button class="theme-btn">
+                <MudIcon Icon="@Icons.Material.Filled.LightMode" Size="Size.Small" /> Light
+            </button>
+            <button class="theme-btn active">
+                <MudIcon Icon="@Icons.Material.Filled.DarkMode" Size="Size.Small" /> Dark
+            </button>
+        </div>
+    </aside>
+
+    @* ─── MAIN AREA ─── *@
+    <div class="main-area">
+        @* ─── HEADER ─── *@
+        <header class="top-header">
+            <div class="search-container">
+                <MudIcon Icon="@Icons.Material.Filled.Search" Size="Size.Small" Class="search-icon" />
+                <input type="text" class="search-input" placeholder="Search videos, channels, and more" />
+            </div>
+            <div class="header-actions">
+                <AuthorizeView>
+                    <Authorized>
+                        <a href="/upload" class="upload-btn">
+                            <MudIcon Icon="@Icons.Material.Filled.Upload" Size="Size.Small" />
+                            Upload
+                        </a>
+                    </Authorized>
+                    <NotAuthorized>
+                        <a href="/login" class="upload-btn">
+                            <MudIcon Icon="@Icons.Material.Filled.Login" Size="Size.Small" />
+                            Sign In
+                        </a>
+                    </NotAuthorized>
+                </AuthorizeView>
+                <button class="notif-btn">
+                    <MudIcon Icon="@Icons.Material.Filled.Notifications" Size="Size.Small" />
+                    <span class="notif-badge">3</span>
+                </button>
+                <div class="avatar-ring">
+                    <div class="avatar-placeholder">
+                        <MudIcon Icon="@Icons.Material.Filled.Person" Size="Size.Small" />
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        @* ─── CONTENT ─── *@
+        <div class="content-scroll">
+            @Body
+        </div>
+    </div>
+</div>
 
 @code {
-    private bool _drawerOpen = true;
-
     private readonly MudTheme _theme = new()
     {
-        PaletteLight = new PaletteLight
-        {
-            Primary = "#7c4dff",
-            Secondary = "#ff6d00",
-            AppbarBackground = "#1a1a2e",
-            Background = "#0f0f23",
-            Surface = "#16213e",
-            DrawerBackground = "#0f0f23"
-        },
         PaletteDark = new PaletteDark
         {
-            Primary = "#7c4dff",
-            Secondary = "#ff6d00",
-            AppbarBackground = "rgba(15, 15, 35, 0.85)",
-            Background = "#0a0a1a",
-            Surface = "#141428",
-            DrawerBackground = "#0a0a1a",
-            TextPrimary = "#e0e0e0",
-            TextSecondary = "#a0a0b0"
+            Primary = "#ffffff",
+            Secondary = "#a1a1a1",
+            AppbarBackground = "#0a0a0a",
+            Background = "#0a0a0a",
+            Surface = "#171717",
+            DrawerBackground = "#0a0a0a",
+            TextPrimary = "#fafafa",
+            TextSecondary = "#a1a1a1"
         },
         Typography = new Typography
         {
-            Default = new DefaultTypography { FontFamily = ["Inter", "sans-serif"] }
+            Default = new DefaultTypography { FontFamily = ["Inter", "system-ui", "sans-serif"] }
         },
         LayoutProperties = new LayoutProperties
         {
             DefaultBorderRadius = "12px"
         }
     };
-
-    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
-
-    [CascadingParameter] private Task<AuthenticationState>? AuthState { get; set; }
-
-    private async Task HandleLogout()
-    {
-        // Implement logout
-    }
 }
