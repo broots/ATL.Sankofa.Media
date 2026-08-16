@@ -7,7 +7,7 @@
         "Action": "Start"
       },
       {
-        "Path": "ATL.Sankofa.Media.UI.Web\\ATL.Sankofa.Media.UI.Web.csproj",
+        "Path": "ATL.Sankofa.Media.UI.Maui\\ATL.Sankofa.Media.UI.Maui.csproj",
         "Action": "Start"
       }
     ]

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ATL.Sankofa.Media.UI.Maui.ViewModels"
+             xmlns:models="clr-namespace:ATL.Sankofa.Media.Business.Models;assembly=ATL.Sankofa.Media.Business"
+             x:Class="ATL.Sankofa.Media.UI.Maui.Views.HomePage"
+             x:DataType="vm:HomeViewModel"
+             Title="Home"
+             BackgroundColor="#0a0a0a"
+             Shell.NavBarIsVisible="False">
+
+    <RefreshView Command="{Binding RefreshCommand}"
+                 IsRefreshing="{Binding IsRefreshing}"
+                 RefreshColor="#ad46ff">
+        <ScrollView>
+            <VerticalStackLayout Spacing="0" Padding="0">
+
+                <!-- ═══ ERROR MESSAGE ═══ -->
+                <Label Text="{Binding ErrorMessage}"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"
+                       TextColor="#ff4444"
+                       FontSize="12"
+                       Margin="16,8"
+                       LineBreakMode="WordWrap" />
+
+                <!-- ═══ HERO FEATURED ═══ -->
+                <Grid HeightRequest="280"
+                      IsVisible="{Binding FeaturedVideo, Converter={StaticResource IsNotNullConverter}}"
+                      Margin="16,16,16,8">
+                    <Grid.GestureRecognizers>
+                        <TapGestureRecognizer Command="{Binding NavigateToVideoCommand}"
+                                              CommandParameter="{Binding FeaturedVideo}" />
+                    </Grid.GestureRecognizers>
+
+                    <Border StrokeShape="RoundRectangle 12"
+                            StrokeThickness="0"
+                            BackgroundColor="#171717">
+                        <Image Source="{Binding FeaturedVideo.ThumbnailUrl}"
+                               Aspect="AspectFill" />
+                    </Border>
+
+                    <!-- Gradient overlay -->
+                    <BoxView Color="#0a0a0a"
+                             Opacity="0.6"
+                             InputTransparent="True" />
+
+                    <!-- Hero content -->
+                    <VerticalStackLayout VerticalOptions="End"
+                                         Padding="20"
+                                         Spacing="8"
+                                         InputTransparent="True">
+                        <Border BackgroundColor="#ad46ff"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 4"
+                                HorizontalOptions="Start"
+                                Padding="8,4">
+                            <Label Text="🔥 Featured Today"
+                                   FontSize="11"
+                                   TextColor="White"
+                                   FontAttributes="Bold" />
+                        </Border>
+                        <Label Text="{Binding FeaturedVideo.Title}"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="#fafafa"
+                               MaxLines="2"
+                               LineBreakMode="TailTruncation" />
+                        <Label Text="{Binding FeaturedVideo.Description}"
+                               FontSize="13"
+                               TextColor="#a1a1a1"
+                               MaxLines="2"
+                               LineBreakMode="TailTruncation" />
+                        <HorizontalStackLayout Spacing="10">
+                            <Button Text="▶ Play Now"
+                                    BackgroundColor="White"
+                                    TextColor="#0a0a0a"
+                                    FontSize="13"
+                                    FontAttributes="Bold"
+                                    CornerRadius="8"
+                                    HeightRequest="36"
+                                    Padding="16,0"
+                                    Command="{Binding NavigateToVideoCommand}"
+                                    CommandParameter="{Binding FeaturedVideo}" />
+                            <Button Text="+ My List"
+                                    BackgroundColor="#2a2a2a"
+                                    TextColor="#fafafa"
+                                    FontSize="13"
+                                    CornerRadius="8"
+                                    HeightRequest="36"
+                                    Padding="16,0" />
+                        </HorizontalStackLayout>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- ═══ CATEGORY PILLS ═══ -->
+                <ScrollView Orientation="Horizontal"
+                            HorizontalScrollBarVisibility="Never"
+                            Margin="16,8,0,16">
+                    <HorizontalStackLayout Spacing="8"
+                                           BindableLayout.ItemsSource="{Binding Categories}">
+                        <BindableLayout.ItemTemplate>
+                            <DataTemplate x:DataType="x:String">
+                                <Border StrokeShape="RoundRectangle 16"
+                                        StrokeThickness="0"
+                                        Padding="14,8"
+                                        BackgroundColor="#2a2a2a">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=SelectCategoryCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <Label Text="{Binding .}"
+                                           FontSize="13"
+                                           TextColor="#fafafa" />
+                                </Border>
+                            </DataTemplate>
+                        </BindableLayout.ItemTemplate>
+                    </HorizontalStackLayout>
+                </ScrollView>
+
+                <!-- ═══ RECOMMENDED FOR YOU ═══ -->
+                <VerticalStackLayout Margin="16,0" Spacing="12">
+                    <Grid>
+                        <Label Text="Recommended for you"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#fafafa"
+                               VerticalOptions="Center" />
+                        <Label Text="See all ›"
+                               FontSize="13"
+                               TextColor="#a1a1a1"
+                               HorizontalOptions="End"
+                               VerticalOptions="Center" />
+                    </Grid>
+
+                    <CollectionView ItemsSource="{Binding Videos}"
+                                    RemainingItemsThreshold="3"
+                                    RemainingItemsThresholdReachedCommand="{Binding LoadMoreCommand}">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Vertical" ItemSpacing="16" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:VideoDto">
+                                <Border StrokeShape="RoundRectangle 12"
+                                        StrokeThickness="0"
+                                        BackgroundColor="#171717"
+                                        Padding="0">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=NavigateToVideoCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="0">
+                                        <!-- Thumbnail -->
+                                        <Grid HeightRequest="180">
+                                            <Border StrokeShape="RoundRectangle 12,12,0,0"
+                                                    StrokeThickness="0">
+                                                <Image Source="{Binding ThumbnailUrl}"
+                                                       Aspect="AspectFill" />
+                                            </Border>
+                                            <!-- Duration badge -->
+                                            <Border StrokeShape="RoundRectangle 4"
+                                                    StrokeThickness="0"
+                                                    BackgroundColor="#000000"
+                                                    Opacity="0.85"
+                                                    HorizontalOptions="End"
+                                                    VerticalOptions="End"
+                                                    Margin="8"
+                                                    Padding="6,3">
+                                                <Label Text="{Binding Duration, Converter={StaticResource DurationConverter}}"
+                                                       FontSize="11"
+                                                       TextColor="White" />
+                                            </Border>
+                                        </Grid>
+                                        <!-- Info -->
+                                        <Grid ColumnDefinitions="40,*"
+                                              Padding="12"
+                                              ColumnSpacing="10">
+                                            <!-- Channel avatar -->
+                                            <Border StrokeShape="RoundRectangle 20"
+                                                    StrokeThickness="0"
+                                                    BackgroundColor="#ad46ff"
+                                                    WidthRequest="36"
+                                                    HeightRequest="36"
+                                                    VerticalOptions="Start">
+                                                <Label Text="{Binding ChannelName, Converter={StaticResource InitialsConverter}}"
+                                                       FontSize="12"
+                                                       FontAttributes="Bold"
+                                                       TextColor="White"
+                                                       HorizontalOptions="Center"
+                                                       VerticalOptions="Center" />
+                                            </Border>
+                                            <!-- Meta -->
+                                            <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                                <Label Text="{Binding Title}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold"
+                                                       TextColor="#fafafa"
+                                                       MaxLines="2"
+                                                       LineBreakMode="TailTruncation" />
+                                                <Label Text="{Binding ChannelName}"
+                                                       FontSize="12"
+                                                       TextColor="#a1a1a1" />
+                                                <HorizontalStackLayout Spacing="4">
+                                                    <Label Text="{Binding ViewCount, Converter={StaticResource ViewCountConverter}}"
+                                                           FontSize="11"
+                                                           TextColor="#a1a1a1" />
+                                                    <Label Text="·"
+                                                           FontSize="11"
+                                                           TextColor="#a1a1a1" />
+                                                    <Label Text="{Binding PublishedAt, Converter={StaticResource TimeAgoConverter}}"
+                                                           FontSize="11"
+                                                           TextColor="#a1a1a1" />
+                                                </HorizontalStackLayout>
+                                            </VerticalStackLayout>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- ═══ CONTINUE WATCHING ═══ -->
+                <VerticalStackLayout Margin="16,24,16,16"
+                                     Spacing="12"
+                                     IsVisible="{Binding RecentVideos.Count, Converter={StaticResource CountToBoolConverter}}">
+                    <Grid>
+                        <Label Text="Continue watching"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="#fafafa"
+                               VerticalOptions="Center" />
+                        <Label Text="See all ›"
+                               FontSize="13"
+                               TextColor="#a1a1a1"
+                               HorizontalOptions="End"
+                               VerticalOptions="Center" />
+                    </Grid>
+
+                    <CollectionView ItemsSource="{Binding RecentVideos}">
+                        <CollectionView.ItemsLayout>
+                            <LinearItemsLayout Orientation="Horizontal" ItemSpacing="12" />
+                        </CollectionView.ItemsLayout>
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:VideoDto">
+                                <Border StrokeShape="RoundRectangle 12"
+                                        StrokeThickness="0"
+                                        BackgroundColor="#171717"
+                                        WidthRequest="220">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, Path=NavigateToVideoCommand}"
+                                                              CommandParameter="{Binding .}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout Spacing="0">
+                                        <Grid HeightRequest="124">
+                                            <Border StrokeShape="RoundRectangle 12,12,0,0"
+                                                    StrokeThickness="0">
+                                                <Image Source="{Binding ThumbnailUrl}"
+                                                       Aspect="AspectFill" />
+                                            </Border>
+                                            <!-- Progress bar -->
+                                            <BoxView HeightRequest="3"
+                                                     BackgroundColor="#ad46ff"
+                                                     VerticalOptions="End"
+                                                     HorizontalOptions="FillAndExpand"
+                                                     WidthRequest="145" />
+                                        </Grid>
+                                        <VerticalStackLayout Padding="10" Spacing="2">
+                                            <Label Text="{Binding Title}"
+                                                   FontSize="12"
+                                                   FontAttributes="Bold"
+                                                   TextColor="#fafafa"
+                                                   MaxLines="2"
+                                                   LineBreakMode="TailTruncation" />
+                                            <Label Text="{Binding ChannelName}"
+                                                   FontSize="11"
+                                                   TextColor="#a1a1a1" />
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+                </VerticalStackLayout>
+
+                <!-- Loading indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   Color="#ad46ff"
+                                   Margin="0,20" />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

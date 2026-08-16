@@ -3,6 +3,8 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
+    <PackageVersion Include="CommunityToolkit.Maui.MediaElement" Version="10.0.0" />
+    <PackageVersion Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Facebook" Version="10.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.Google" Version="10.0.9" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
@@ -26,7 +28,7 @@
     <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.9" />
     <PackageVersion Include="Microsoft.IdentityModel.Tokens" Version="8.0.2" />
-    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.9" />
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="10.0.60" />
     <PackageVersion Include="MudBlazor" Version="9.5.0" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.0.2" />
   </ItemGroup>

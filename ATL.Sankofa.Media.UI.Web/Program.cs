@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor.Services;
 using ATL.Sankofa.Media.UI.Web;
 using ATL.Sankofa.Media.UI.Web.Auth;
-using ATL.Sankofa.Media.UI.Web.Services;
+using ATL.Sankofa.Media.UI.Shared.Services;
 using ATL.Sankofa.Media.UI.Shared.Auth;
 using ATL.Sankofa.Media.Business.Interfaces;
 

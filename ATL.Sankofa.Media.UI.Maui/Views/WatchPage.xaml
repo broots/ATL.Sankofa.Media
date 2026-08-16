@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             xmlns:vm="clr-namespace:ATL.Sankofa.Media.UI.Maui.ViewModels"
+             x:Class="ATL.Sankofa.Media.UI.Maui.Views.WatchPage"
+             x:DataType="vm:WatchViewModel"
+             Title="{Binding Video.Title, FallbackValue='Watch'}"
+             BackgroundColor="#0a0a0a"
+             Shell.NavBarIsVisible="False">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+
+        <!-- Back button -->
+        <HorizontalStackLayout Grid.Row="0" Padding="8,8" Spacing="8">
+            <ImageButton Source="{FontImage FontFamily=MaterialRegular, Glyph='&#xE5C4;', Color=White, Size=24}"
+                         Command="{Binding GoBackCommand}"
+                         WidthRequest="40" HeightRequest="40" />
+            <Label Text="{Binding Video.Title, FallbackValue=''}"
+                   TextColor="#fafafa"
+                   FontSize="16"
+                   FontAttributes="Bold"
+                   VerticalOptions="Center"
+                   MaxLines="1"
+                   LineBreakMode="TailTruncation" />
+        </HorizontalStackLayout>
+
+        <!-- Video Player -->
+        <toolkit:MediaElement x:Name="Player"
+                              Grid.Row="1"
+                              HeightRequest="220"
+                              ShouldAutoPlay="True"
+                              ShouldShowPlaybackControls="True"
+                              Background="#000"
+                              Source="{Binding PlaybackSource}" />
+
+        <!-- Video Details -->
+        <ScrollView Grid.Row="2">
+            <VerticalStackLayout Padding="16,12" Spacing="12">
+
+                <!-- Loading indicator -->
+                <ActivityIndicator IsRunning="{Binding IsLoading}"
+                                   IsVisible="{Binding IsLoading}"
+                                   Color="#ad46ff"
+                                   HorizontalOptions="Center" />
+
+                <!-- Error message -->
+                <Label Text="{Binding ErrorMessage}"
+                       IsVisible="{Binding ErrorMessage, Converter={StaticResource IsNotNullConverter}}"
+                       TextColor="#ff4444"
+                       FontSize="14"
+                       HorizontalOptions="Center" />
+
+                <!-- Title -->
+                <Label Text="{Binding Video.Title}"
+                       FontSize="20"
+                       FontAttributes="Bold"
+                       TextColor="#fafafa"
+                       MaxLines="3"
+                       LineBreakMode="WordWrap" />
+
+                <!-- Meta row -->
+                <HorizontalStackLayout Spacing="12">
+                    <Label TextColor="#a1a1a1" FontSize="13">
+                        <Label.FormattedText>
+                            <FormattedString>
+                                <Span Text="{Binding Video.ViewCount, StringFormat='{0:N0} views'}" />
+                                <Span Text=" • " />
+                                <Span Text="{Binding Video.PublishedAt, StringFormat='{0:MMM d, yyyy}'}" />
+                            </FormattedString>
+                        </Label.FormattedText>
+                    </Label>
+                </HorizontalStackLayout>
+
+                <!-- Channel -->
+                <HorizontalStackLayout Spacing="12">
+                    <Border StrokeShape="RoundRectangle 20"
+                            StrokeThickness="0"
+                            BackgroundColor="#ad46ff"
+                            WidthRequest="40" HeightRequest="40"
+                            HorizontalOptions="Start">
+                        <Label Text="{Binding ChannelInitial}"
+                               TextColor="White"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               HorizontalOptions="Center"
+                               VerticalOptions="Center" />
+                    </Border>
+                    <Label Text="{Binding Video.ChannelName}"
+                           TextColor="#fafafa"
+                           FontSize="15"
+                           FontAttributes="Bold"
+                           VerticalOptions="Center" />
+                </HorizontalStackLayout>
+
+                <!-- Description -->
+                <Border StrokeShape="RoundRectangle 8"
+                        StrokeThickness="0"
+                        BackgroundColor="#1a1a1a"
+                        Padding="12"
+                        IsVisible="{Binding HasDescription}">
+                    <Label Text="{Binding Video.Description}"
+                           TextColor="#d4d4d4"
+                           FontSize="13"
+                           LineBreakMode="WordWrap" />
+                </Border>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+    </Grid>
+</ContentPage>

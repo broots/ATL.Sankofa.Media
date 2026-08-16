@@ -3,7 +3,7 @@ using ATL.Sankofa.Media.Business.Interfaces;
 using ATL.Sankofa.Media.Business.Models;
 using ATL.Sankofa.Media.Data.Entities;
 
-namespace ATL.Sankofa.Media.UI.Web.Services;
+namespace ATL.Sankofa.Media.UI.Shared.Services;
 
 public class PaywallServiceClient : IPaywallService
 {

@@ -2,7 +2,7 @@ using System.Net.Http.Json;
 using ATL.Sankofa.Media.Business.Interfaces;
 using ATL.Sankofa.Media.Business.Models;
 
-namespace ATL.Sankofa.Media.UI.Web.Services;
+namespace ATL.Sankofa.Media.UI.Shared.Services;
 
 public class ChannelServiceClient : IChannelService
 {
