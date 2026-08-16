@@ -6,3 +6,4 @@
 **/bin/
 **/obj/
 /.github/copilot-instructions.md
+/ATL.Sankofa.Media.UI.Maui/ATL.Sankofa.Media.UI.Maui.csproj.user
