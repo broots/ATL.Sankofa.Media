@@ -7,37 +7,23 @@
        Shell.ForegroundColor="#fafafa"
        Shell.TitleColor="#fafafa"
        Shell.UnselectedColor="#a1a1a1"
-       FlyoutBehavior="Locked"
-       FlyoutWidth="220"
-       FlyoutBackgroundColor="#0a0a0a">
+       Shell.TabBarBackgroundColor="#0a0a0a"
+       Shell.TabBarForegroundColor="#fafafa"
+       Shell.TabBarUnselectedColor="#a1a1a1">
 
-    <Shell.FlyoutHeader>
-        <VerticalStackLayout Padding="16,24,16,16">
-            <Label Text="ATL Sankofa"
-                   FontSize="20"
-                   FontAttributes="Bold"
-                   TextColor="#fafafa" />
-            <Label Text="Media"
-                   FontSize="14"
-                   TextColor="#a1a1a1" />
-        </VerticalStackLayout>
-    </Shell.FlyoutHeader>
-
-    <FlyoutItem Title="Home"
-                Icon="{OnPlatform Android='home', iOS='home'}">
-        <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
-    </FlyoutItem>
-    <FlyoutItem Title="Trending"
-                Icon="{OnPlatform Android='trending_up', iOS='trending_up'}">
-        <ShellContent ContentTemplate="{DataTemplate views:TrendingPage}" />
-    </FlyoutItem>
-    <FlyoutItem Title="Subscriptions"
-                Icon="{OnPlatform Android='subscriptions', iOS='subscriptions'}">
-        <ShellContent ContentTemplate="{DataTemplate views:SubscriptionsPage}" />
-    </FlyoutItem>
-    <FlyoutItem Title="Library"
-                Icon="{OnPlatform Android='video_library', iOS='video_library'}">
-        <ShellContent ContentTemplate="{DataTemplate views:LibraryPage}" />
-    </FlyoutItem>
+    <TabBar>
+        <ShellContent Title="Home"
+                      Icon="{OnPlatform Android='home', iOS='home'}"
+                      ContentTemplate="{DataTemplate views:HomePage}" />
+        <ShellContent Title="Trending"
+                      Icon="{OnPlatform Android='trending_up', iOS='trending_up'}"
+                      ContentTemplate="{DataTemplate views:TrendingPage}" />
+        <ShellContent Title="Subscriptions"
+                      Icon="{OnPlatform Android='subscriptions', iOS='subscriptions'}"
+                      ContentTemplate="{DataTemplate views:SubscriptionsPage}" />
+        <ShellContent Title="Library"
+                      Icon="{OnPlatform Android='video_library', iOS='video_library'}"
+                      ContentTemplate="{DataTemplate views:LibraryPage}" />
+    </TabBar>
 
 </Shell>
